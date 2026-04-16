@@ -1,0 +1,512 @@
+import { useEffect } from "react";
+import Aurora from "../components/Aurora";
+import { COLORS, FONT, RADIUS } from "../styles/theme";
+import { useFetch } from "../hooks/useFetch";
+import { useNavigate } from "react-router-dom";
+
+import {
+  StatCard,
+  LoadingSpinner,
+  ErrorBanner,
+} from "../components/UI";
+
+import {
+  DonutChart,
+  DonutLegend,
+  TrendChart,
+} from "../components/Charts";
+
+import {
+  getOverviewStats,
+  getQuartileData,
+  getSDGData,
+  getPublicationTrend,
+  getCitationTotals,
+  getColleges,
+} from "../services/api";
+
+/* ────────────────────────────────────────────────────────────────
+   Glassmorphism Style
+──────────────────────────────────────────────────────────────── */
+const glassCard = {
+  background: "rgba(255, 255, 255, 0.12)",
+  backdropFilter: "blur(14px)",
+  WebkitBackdropFilter: "blur(14px)",
+  border: "1px solid rgba(255, 255, 255, 0.18)",
+  borderRadius: RADIUS.lg,
+  boxShadow: "0 8px 32px rgba(0, 0, 0, 0.15)",
+  padding: "14px 16px",
+};
+
+/* ────────────────────────────────────────────────────────────────
+   Top Stats Row
+──────────────────────────────────────────────────────────────── */
+function TopStatsRow({ stats }) {
+  if (!stats) return null;
+
+  return (
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+        gap: 12,
+        marginBottom: 14,
+      }}
+    >
+      <div style={glassCard}>
+        <div style={{ fontSize: 11, color: "#eaeaea" }}>
+          Total Publications
+        </div>
+        <StatCard
+          label="Total Publications/Proceedings"
+          value={stats.totalPublications.toLocaleString()}
+          sub={`↑ ${stats.retracted} Retracted`}
+        />
+      </div>
+
+      <div style={glassCard}>
+        <div style={{ fontSize: 11, color: "#eaeaea" }}>
+          Indexed Publications/Proceedings
+        </div>
+        <StatCard
+          label="Indexed Publications/Proceedings"
+          value={stats.indexedPublications.toLocaleString()}
+          accent={COLORS.crimson}
+        />
+      </div>
+
+      {/* Impact Factor */}
+      <div style={glassCard}>
+        <div style={{ fontSize: 11, color: "#eaeaea" }}>
+          Impact Factor
+        </div>
+        <div style={{ fontSize: 12, color: "#ddd" }}>Average</div>
+        <div
+          style={{
+            fontSize: 24,
+            fontWeight: 700,
+            color: "#fff",
+          }}
+        >
+          {stats.impactFactor.average}
+        </div>
+        <div style={{ fontSize: 11, color: "#ddd" }}>
+          Cumulative:{" "}
+          {stats.impactFactor.cumulative.toLocaleString()}
+        </div>
+      </div>
+
+      {/* Research Impact */}
+      <div style={glassCard}>
+        <div
+          style={{
+            fontSize: 11,
+            color: "#eaeaea",
+            marginBottom: 8,
+          }}
+        >
+          Research Impact
+        </div>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr 1fr",
+            gap: 6,
+          }}
+        >
+          {[
+            ["Policy", stats.researchImpact.policy],
+            ["News", stats.researchImpact.news],
+            ["Wiki", stats.researchImpact.wiki],
+            ["FWCI", stats.researchImpact.fwci],
+            ["PE", stats.researchImpact.pe],
+          ].map(([label, value]) => (
+            <div key={label} style={{ fontSize: 11 }}>
+              <span style={{ color: "#ddd" }}>{label} </span>
+              <span style={{ fontWeight: 600, color: "#fff" }}>
+                {value}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ────────────────────────────────────────────────────────────────
+   Indexed Section
+──────────────────────────────────────────────────────────────── */
+function IndexedRow({ stats }) {
+  if (!stats) return null;
+
+  return (
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+        gap: 12,
+        marginBottom: 14,
+      }}
+    >
+      {/* Indexed In */}
+      <div style={glassCard}>
+        <div style={{ fontSize: 12, color: "#fff", marginBottom: 10 }}>
+          Indexed in
+        </div>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(3, 1fr)",
+            gap: 8,
+          }}
+        >
+          {stats.indexedIn.map(({ label, value, color }) => (
+            <div
+              key={label}
+              style={{
+                textAlign: "center",
+                padding: "10px 6px",
+                borderRadius: RADIUS.md,
+                background: "rgba(255,255,255,0.2)",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 22,
+                  fontWeight: 700,
+                  color,
+                }}
+              >
+                {value.toLocaleString()}
+              </div>
+              <div style={{ fontSize: 11, color: "#fff" }}>
+                {label}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* h-Index & i10-Index */}
+      <div style={glassCard}>
+        <IndexBlock label="h-Index" items={stats.hIndex} />
+        <div style={{ marginTop: 12 }}>
+          <IndexBlock label="i10-Index" items={stats.i10Index} />
+        </div>
+      </div>
+
+      {/* Percentiles */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <PercentileCard
+          label="Top 1 Percentile"
+          value={stats.top1Percentile}
+        />
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <PercentileCard
+          label="Top 10 Percentile"
+          value={stats.top10Percentile}
+        />
+      </div>
+    </div>
+  );
+}
+
+function IndexBlock({ label, items }) {
+  return (
+    <>
+      <div style={{ fontSize: 12, color: "#fff", marginBottom: 6 }}>
+        {label}
+      </div>
+      <div style={{ display: "flex", gap: 10 }}>
+        {items.map(({ label: l, value }) => (
+          <div
+            key={l}
+            style={{
+              flex: 1,
+              textAlign: "center",
+              padding: "6px",
+              background: "rgba(255,255,255,0.2)",
+              borderRadius: RADIUS.sm,
+            }}
+          >
+            <div style={{ fontWeight: 700, color: "#fff" }}>
+              {value}
+            </div>
+            <div style={{ fontSize: 10, color: "#eee" }}>
+              {l}
+            </div>
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}
+
+function PercentileCard({ label, value }) {
+  return (
+    <div style={{ ...glassCard, textAlign: "center" }}>
+      <div style={{ fontSize: 11, color: "#eee" }}>{label}</div>
+      <div
+        style={{
+          fontSize: 26,
+          fontWeight: 700,
+          color: "#fff",
+        }}
+      >
+        {value}
+      </div>
+    </div>
+  );
+}
+
+/* ────────────────────────────────────────────────────────────────
+   Charts Section
+──────────────────────────────────────────────────────────────── */
+function ChartsRow({
+  trendData,
+  citationTotals,
+  quartileData,
+  sdgData,
+}) {
+  return (
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "1fr minmax(200px, 0.45fr)",
+        gap: 12,
+        marginBottom: 14,
+      }}
+    >
+      {/* Trend Chart */}
+      <div style={glassCard}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            marginBottom: 12,
+          }}
+        >
+          <span style={{ color: "#fff", fontWeight: 600 }}>
+            Publication Trends
+          </span>
+        </div>
+        <TrendChart data={trendData} />
+        {citationTotals && (
+          <div style={{ marginTop: 8, color: "#fff", fontSize: 12 }}>
+            Crossref: {citationTotals.crossref.toLocaleString()} |
+            Scopus: {citationTotals.scopus.toLocaleString()}
+          </div>
+        )}
+      </div>
+
+      {/* Donut & SDG */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <div style={glassCard}>
+          <div
+            style={{
+              textAlign: "center",
+              fontWeight: 600,
+              color: "#fff",
+              marginBottom: 10,
+            }}
+          >
+            Quartiles
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <DonutChart data={quartileData} size={100} />
+            <DonutLegend data={quartileData} />
+          </div>
+        </div>
+
+        <div style={glassCard}>
+          <div style={{ color: "#fff", marginBottom: 8 }}>
+            Sustainable Development Goals
+          </div>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: 6,
+            }}
+          >
+            {sdgData.map((d) => (
+              <div
+                key={d.label}
+                style={{
+                  background: d.color,
+                  borderRadius: RADIUS.md,
+                  padding: "8px",
+                  color: "#fff",
+                }}
+              >
+                <strong>{d.count}</strong>
+                <div style={{ fontSize: 10 }}>{d.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ────────────────────────────────────────────────────────────────
+   Institutional Table
+──────────────────────────────────────────────────────────────── */
+function InstitutionalTable({ colleges }) {
+  return (
+    <div style={glassCard}>
+      <div style={{ overflowX: "auto" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <thead>
+            <tr style={{ background: COLORS.crimson }}>
+              {[
+                "Sr.No",
+                "College",
+                "Total Pubs",
+                "Indexed Pubs",
+                "Total Citations",
+                "Avg Impact Factor",
+                "Q1|Q2|Q3|Q4|None",
+              ].map((h) => (
+                <th
+                  key={h}
+                  style={{
+                    padding: "12px",
+                    color: "#fff",
+                    fontSize: 12,
+                    textAlign: "left",
+                  }}
+                >
+                  {h}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {colleges.map((c) => {
+              const { q1, q2, q3, q4, none } = c.quartiles;
+              return (
+                <tr key={c.id}>
+                  <td style={{ padding: 12 }}>{c.id}</td>
+                  <td style={{ padding: 12 }}>{c.name}</td>
+                  <td style={{ padding: 12 }}>
+                    {c.totalPublications}
+                  </td>
+                  <td style={{ padding: 12 }}>
+                    {c.indexedBreakdown.total}
+                  </td>
+                  <td style={{ padding: 12 }}>
+                    {c.totalCitations}
+                  </td>
+                  <td style={{ padding: 12 }}>
+                    {c.avgImpactFactor}
+                  </td>
+                  <td style={{ padding: 12 }}>
+                    {q1}|{q2}|{q3}|{q4}|{none}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+/* ────────────────────────────────────────────────────────────────
+   Main Index Page
+──────────────────────────────────────────────────────────────── */
+export default function IndexPage() {
+  useEffect(() => {
+    const root = document.getElementById("root");
+    root.classList.add("home-root");
+    return () => root.classList.remove("home-root");
+  }, []);
+
+  const navigate = useNavigate();
+
+  const { data: stats, loading: l1, error: e1 } =
+    useFetch(getOverviewStats);
+  const { data: quartile, loading: l2, error: e2 } =
+    useFetch(getQuartileData);
+  const { data: sdg, loading: l3, error: e3 } =
+    useFetch(getSDGData);
+  const { data: trend, loading: l4, error: e4 } =
+    useFetch(getPublicationTrend);
+  const { data: citations, loading: l5, error: e5 } =
+    useFetch(getCitationTotals);
+  const { data: colleges, loading: l6, error: e6 } =
+    useFetch(getColleges);
+
+  const anyLoading = l1 || l2 || l3 || l4 || l5 || l6;
+  const anyError = e1 || e2 || e3 || e4 || e5 || e6;
+
+  if (anyLoading) return <LoadingSpinner />;
+  if (anyError) return <ErrorBanner message={anyError} />;
+
+  return (
+    <div className="index-container">
+      <Aurora
+        colorStops={["#8061fc", "#2500b7", "#000000", "#2200a8"]}
+        amplitude={1}
+        blend={0.5}
+      />
+
+      <div className="index-content">
+        <h1
+          style={{
+            fontFamily: FONT.serif,
+            fontSize: "clamp(24px, 3vw, 34px)",
+            fontWeight: 400,
+            marginBottom: 22,
+            color: "#ffffff",
+          }}
+        >
+          Overview
+        </h1>
+
+        <TopStatsRow stats={stats} />
+        <IndexedRow stats={stats} />
+        <ChartsRow
+          trendData={trend}
+          citationTotals={citations}
+          quartileData={quartile}
+          sdgData={sdg}
+        />
+
+        <h2
+          style={{
+            fontFamily: FONT.serif,
+            fontSize: "22px",
+            color: "#fff",
+            margin: "20px 0 10px",
+          }}
+        >
+          Institutional Publication Overview
+        </h2>
+
+        <InstitutionalTable colleges={colleges} />
+      </div>
+
+      <style>{`
+        .index-container {
+          position: relative;
+          min-height: 100vh;
+          width: 100%;
+          overflow: hidden;
+        }
+        .index-content {
+          position: relative;
+          z-index: 1;
+          padding: clamp(16px, 3vw, 28px);
+          max-width: 1400px;
+          margin: 0 auto;
+        }
+      `}</style>
+    </div>
+  );
+}
