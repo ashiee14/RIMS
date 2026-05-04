@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import Aurora from "../components/Aurora";
 import { COLORS } from "../styles/theme";
+import { fetchProjects } from "../services/api";
+// Mock data for development (to be replaced with real API calls)
+
 
 const {
   crimson: CRIMSON,
@@ -14,6 +17,46 @@ const {
 
 const ResearchPage = ({ onNav }) => {
   const [timeFilter, setTimeFilter] = useState("current");
+  const [rows, setRows] = useState([]); 
+
+useEffect(() => {
+  const loadData = async () => {
+    try {
+      const data = await fetchProjects();
+
+      if (!data || !Array.isArray(data)) {
+        console.warn("Invalid API response, using empty array");
+        setRows([]);
+        return;
+      }
+
+      const formatted = data.map((item) => ({
+        id: item.id || Math.random(),
+        faculty: item.principal_investigator?.full_name || "N/A",
+        dept: item.department?.name || "N/A",
+        name: item.title || "N/A",
+        type: "Research",
+        duration: "--",
+        date: item.start_date || "--",
+        funded: !!item.amount,
+        funds: item.amount || 0,
+        fundedBy: item.funding_agency?.name || "N/A",
+        org: "N/A",
+        status: item.status || "Unknown",
+      }));
+
+      setRows(formatted);
+    } catch (err) {
+      console.error("Error fetching projects:", err);
+
+      // fallback so UI doesn’t break
+      setRows([]);
+    }
+  };
+
+  loadData();
+}, []);
+
 
   // Adds aurora styling to the root
   useEffect(() => {
@@ -22,14 +65,7 @@ const ResearchPage = ({ onNav }) => {
     return () => root.classList.remove("aurora-root");
   }, []);
 
-  const rows = [
-    { id: 1, faculty: "Babasaheb Jadhav", dept: "Global Business School", name: "A Study On The Role Of Fintech: A Pathway To Financial Inclusion For Low Income Households", type: "National", duration: "--", date: "28 Jan 2025", funded: true, funds: 1, fundedBy: "Non-Government", org: "Dr. D.Y. Patil Vidyapeeth", status: "Ongoing" },
-    { id: 2, faculty: "Hetal Rathod", dept: "Community Medicine", name: "Serosurvey For Kyasanur Forest Disease (KFD) In Western Ghats, India, 2024", type: "National", duration: "--", date: "3 Jun 2025", funded: true, funds: 23.21, fundedBy: "Government", org: "ICMR", status: "Ongoing" },
-    { id: 3, faculty: "Amit Paliwal", dept: "Shalya Tantra", name: "A Comparative, Randomized Clinical Trial To Evaluate The Efficacy & Safety Of Ural-BPH Capsule In Adult Patients With Uncomplicated Benign Prostatic Hyperplasia (BPH).", type: "National", duration: "--", date: "10 Feb 2025", funded: true, funds: 2.23, fundedBy: "Non-Government", org: "Mprax Healthcare Pvt Ltd", status: "Ongoing" },
-    { id: 4, faculty: "Debjani Guha", dept: "Global Business School", name: "Implications Of Artificial Intelligence On Talent Acquisition.", type: "National", duration: "--", date: "29 Sept 2022", funded: true, funds: 0.035, fundedBy: "Non-Government", org: "Dr.D.Y.Patil Vidyapeeth, Pune", status: "Ongoing" },
-    { id: 5, faculty: "Zafar Azeem", dept: "Physiotherapy", name: "Test-Retest Reliability And Validity Of TecnobodyTM D-Wall In Assessing Range Of Motion During Forward And Backward Lunge In Healthy Individuals", type: "National", duration: "--", date: "1 Aug 2025", funded: true, funds: 2.52, fundedBy: "Non-Government", org: "DPU", status: "Ongoing" },
-  ];
-
+ 
   return (
     <div className="research-container">
       {/* Aurora Background */}

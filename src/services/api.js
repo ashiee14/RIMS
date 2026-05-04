@@ -1,5 +1,5 @@
 // src/services/api.js
-
+import axios from "axios";
 // Utility function to simulate API delay
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -216,4 +216,55 @@ export const getColleges = async () => {
       },
     },
   ];
+};
+
+
+/* ────────────────────────────────────────────────────────────────
+   REAL API INTEGRATION (DO NOT MODIFY ABOVE CODE)
+──────────────────────────────────────────────────────────────── */
+
+
+
+const BASE_URL = "/api";
+
+const API = axios.create({
+  baseURL: BASE_URL,
+});
+
+// Attach JWT token automatically
+API.interceptors.request.use((config) => {
+  const token = localStorage.getItem("access_token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+
+/* ────────────────────────────────────────────────────────────────
+   Research Projects API
+──────────────────────────────────────────────────────────────── */
+
+// GET all projects
+export const fetchProjects = async () => {
+  const res = await API.get("/projects/");
+  return res.data;
+};
+
+// CREATE project
+export const addProject = async (data) => {
+  const res = await API.post("/projects/create/", data);
+  return res.data;
+};
+
+// UPDATE project
+export const updateProject = async (id, data) => {
+  const res = await API.patch(`/projects/${id}/`, data);
+  return res.data;
+};
+
+// DELETE project
+export const deleteProject = async (id) => {
+  const res = await API.delete(`/projects/${id}/`);
+  return res.data;
 };

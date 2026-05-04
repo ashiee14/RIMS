@@ -4,8 +4,42 @@ import Aurora from "../components/Aurora";
 import { COLORS, FONT, RADIUS } from "../styles/theme";
 import { Logo, GoogleIcon } from "../components/Icons";
 
+import axios from "axios";
+
 const HomePage = () => {
   const navigate = useNavigate();
+
+  const handleGoogleLogin = () => {
+  window.google.accounts.id.initialize({
+    client_id: "1089389799172-pe5fqqpah4glvkv622ti19bd9ik37fd4.apps.googleusercontent.com",
+    callback: handleCredentialResponse,
+  });
+
+  window.google.accounts.id.prompt(); // opens Google popup
+};
+
+
+const handleCredentialResponse = async (response) => {
+  try {
+    console.log("Google Token:", response.credential);
+
+    const res = await axios.post("/api/users/auth/google/", {
+      token: response.credential,
+    });
+
+    console.log("JWT:", res.data);
+
+    // ✅ Save token
+    localStorage.setItem("access_token", res.data.access);
+
+    // ✅ Redirect after login
+    navigate("/dashboard");
+
+  } catch (err) {
+  console.error("FULL ERROR:", err.response?.data || err.message);
+  }
+};
+
 
   useEffect(() => {
     const root = document.getElementById("root");
@@ -50,7 +84,7 @@ const HomePage = () => {
           {/* Google Sign-in Button */}
           <button
             className="signin-button"
-            onClick={() => navigate("/dashboard")}
+            onClick={handleGoogleLogin}
             onMouseEnter={(e) =>
               (e.currentTarget.style.boxShadow =
                 "0 4px 12px rgba(0,0,0,0.3)")
