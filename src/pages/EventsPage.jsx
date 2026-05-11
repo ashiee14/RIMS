@@ -49,7 +49,7 @@ const updateField = (key, value) => {
   useEffect(() => {
   const loadEvents = async () => {
     try {
-      const token = localStorage.getItem("access");
+      const token = localStorage.getItem("access_token");
 
       const response = await fetch("/api/events/", {
         headers: {

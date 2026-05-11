@@ -40,7 +40,7 @@ const updateField = (key, value) => {
   useEffect(() => {
   const loadBooks = async () => {
     try {
-      const token = localStorage.getItem("access");
+      const token = localStorage.getItem("access_token");
 
       const response = await fetch("/api/books/", {
         headers: {

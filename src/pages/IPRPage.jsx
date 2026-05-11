@@ -23,7 +23,7 @@ const [loading, setLoading] = useState(true);
   useEffect(() => {
   const loadIPRs = async () => {
     try {
-      const token = localStorage.getItem("access");
+      const token = localStorage.getItem("access_token");
 
       const response = await fetch("/api/ipr/", {
         headers: {
