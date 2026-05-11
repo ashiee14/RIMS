@@ -24,13 +24,17 @@ useEffect(() => {
     try {
       const data = await fetchProjects();
 
-      if (!data || !Array.isArray(data)) {
+      console.log("PROJECT API RESPONSE:", data);
+
+      const projects = data?.results || [];
+
+      if (!Array.isArray(projects)) {
         console.warn("Invalid API response, using empty array");
         setRows([]);
         return;
       }
 
-      const formatted = data.map((item) => ({
+      const formatted = (data.results || []).map((item) => ({
         id: item.id || Math.random(),
         faculty: item.principal_investigator?.full_name || "N/A",
         dept: item.department?.name || "N/A",
@@ -38,7 +42,7 @@ useEffect(() => {
         type: "Research",
         duration: "--",
         date: item.start_date || "--",
-        funded: !!item.amount,
+        funded: Number(item.amount) > 0,
         funds: item.amount || 0,
         fundedBy: item.funding_agency?.name || "N/A",
         org: "N/A",
@@ -60,10 +64,68 @@ useEffect(() => {
 
   // Adds aurora styling to the root
   useEffect(() => {
-    const root = document.getElementById("root");
-    root.classList.add("aurora-root");
-    return () => root.classList.remove("aurora-root");
-  }, []);
+  const loadData = async () => {
+    try {
+      const data = await fetchProjects();
+
+      console.log("PROJECT API RESPONSE:", data);
+
+      // API returns paginated object
+      const projects = data?.results || [];
+
+      if (!Array.isArray(projects)) {
+        console.warn("Invalid API response, using empty array");
+        setRows([]);
+        return;
+      }
+
+      const formatted = projects.map((item, index) => ({
+        id: item.id || index + 1,
+        faculty:
+          item.principal_investigator?.full_name || "N/A",
+
+        dept:
+          item.department?.name || "N/A",
+
+        name:
+          item.title || "N/A",
+
+        type: "Research",
+
+        duration:
+          item.start_date && item.end_date
+            ? `${item.start_date} - ${item.end_date}`
+            : "--",
+
+        date:
+          item.start_date || "--",
+
+        funded:
+          Number(item.amount) > 0,
+
+        funds:
+          item.amount || 0,
+
+        fundedBy:
+          item.funding_agency?.name || "N/A",
+
+        org:
+          item.funding_agency?.country || "N/A",
+
+        status:
+          item.status || "Unknown",
+      }));
+
+      setRows(formatted);
+
+    } catch (err) {
+      console.error("Error fetching projects:", err);
+      setRows([]);
+    }
+  };
+
+  loadData();
+}, []);
 
  
   return (

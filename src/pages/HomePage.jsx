@@ -29,14 +29,14 @@ const handleCredentialResponse = async (response) => {
 
     console.log("JWT:", res.data);
 
-    // ✅ Save token
-    localStorage.setItem("access_token", res.data.access);
+    // ✅ Save backend JWT tokens
+    localStorage.setItem("access", res.data.access);
+    localStorage.setItem("refresh", res.data.refresh);
 
-    // ✅ Redirect after login
     navigate("/dashboard");
 
   } catch (err) {
-  console.error("FULL ERROR:", err.response?.data || err.message);
+    console.error("FULL ERROR:", err.response?.data || err.message);
   }
 };
 
