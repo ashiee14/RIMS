@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Aurora from "../components/Aurora";
 import { COLORS } from "../styles/theme";
 
@@ -7,27 +7,51 @@ const {
   textMuted: TEXT_MUTED,
 } = COLORS;
 
-const iprs = [
-  {
-    title: "AI-Based Disease Prediction System",
-    type: "Patent",
-    status: "Published",
-    year: "2025",
-  },
-  {
-    title: "Smart Attendance System",
-    type: "Copyright",
-    status: "Granted",
-    year: "2023",
-  },
-];
+
 
 const IPRPage = () => {
+  const [iprs, setIprs] = useState([]);
+const [loading, setLoading] = useState(true);
+
+
   useEffect(() => {
     const root = document.getElementById("root");
     root.classList.add("aurora-root");
     return () => root.classList.remove("aurora-root");
   }, []);
+
+  useEffect(() => {
+  const loadIPRs = async () => {
+    try {
+      const token = localStorage.getItem("access");
+
+      const response = await fetch("/api/ipr/", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      console.log("IPRS:", data);
+
+      const iprArray = Array.isArray(data)
+        ? data
+        : data.results || [];
+
+      setIprs(iprArray);
+
+    } catch (error) {
+      console.error("Error fetching IPRs:", error);
+      setIprs([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  loadIPRs();
+}, []);
+
 
   return (
     <div className="aurora-page">
@@ -36,14 +60,35 @@ const IPRPage = () => {
         <h1 style={{ color: CRIMSON }}>Intellectual Property Rights (IPR)</h1>
         <p style={{ color: TEXT_MUTED }}>Patents, copyrights, and trademarks.</p>
 
-        {iprs.map((ipr, index) => (
-          <div key={index} className="aurora-card">
-            <h3>{ipr.title}</h3>
-            <p><strong>Type:</strong> {ipr.type}</p>
-            <p><strong>Status:</strong> {ipr.status}</p>
-            <p><strong>Year:</strong> {ipr.year}</p>
-          </div>
-        ))}
+        {loading ? (
+  <p>Loading IPR records...</p>
+) : iprs.length === 0 ? (
+  <p>No IPR records found.</p>
+) : (
+  iprs.map((ipr) => (
+    <div key={ipr.id} className="aurora-card">
+      <h3>{ipr.title}</h3>
+
+      <p>
+        <strong>Type:</strong> {ipr.ipr_type}
+      </p>
+
+      <p>
+        <strong>Status:</strong> {ipr.status}
+      </p>
+
+      <p>
+        <strong>Application No:</strong>{" "}
+        {ipr.application_no}
+      </p>
+
+      <p>
+        <strong>Filing Date:</strong>{" "}
+        {ipr.filing_date}
+      </p>
+    </div>
+  ))
+)}
       </div>
 
       <style>{`

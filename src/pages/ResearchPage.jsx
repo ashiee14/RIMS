@@ -19,47 +19,7 @@ const ResearchPage = ({ onNav }) => {
   const [timeFilter, setTimeFilter] = useState("current");
   const [rows, setRows] = useState([]); 
 
-useEffect(() => {
-  const loadData = async () => {
-    try {
-      const data = await fetchProjects();
 
-      console.log("PROJECT API RESPONSE:", data);
-
-      const projects = data?.results || [];
-
-      if (!Array.isArray(projects)) {
-        console.warn("Invalid API response, using empty array");
-        setRows([]);
-        return;
-      }
-
-      const formatted = (data.results || []).map((item) => ({
-        id: item.id || Math.random(),
-        faculty: item.principal_investigator?.full_name || "N/A",
-        dept: item.department?.name || "N/A",
-        name: item.title || "N/A",
-        type: "Research",
-        duration: "--",
-        date: item.start_date || "--",
-        funded: Number(item.amount) > 0,
-        funds: item.amount || 0,
-        fundedBy: item.funding_agency?.name || "N/A",
-        org: "N/A",
-        status: item.status || "Unknown",
-      }));
-
-      setRows(formatted);
-    } catch (err) {
-      console.error("Error fetching projects:", err);
-
-      // fallback so UI doesn’t break
-      setRows([]);
-    }
-  };
-
-  loadData();
-}, []);
 
 
   // Adds aurora styling to the root

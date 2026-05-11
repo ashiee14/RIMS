@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Aurora from "../components/Aurora";
 import { COLORS, FONT } from "../styles/theme";
 
@@ -9,26 +9,229 @@ const {
   cardBg: CARD_BG,
 } = COLORS;
 
-const events = [
-  {
-    title: "National Research Symposium",
-    date: "10 Oct 2025",
-    location: "Pune, India",
-  },
-  {
-    title: "AI Innovation Workshop",
-    date: "15 Dec 2025",
-    location: "Mumbai, India",
-  },
-];
+const inputStyle = {
+  width: "100%",
+  padding: "10px",
+  marginTop: 10,
+  borderRadius: 8,
+  border: "1px solid #ccc",
+};
+
 
 const EventsPage = () => {
-  // Optional: Adds a global class for styling consistency
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+const [editingId, setEditingId] = useState(null);
+
+  const [fields, setFields] = useState({
+  title: "",
+  event_type: "conference",
+  start_date: "",
+  end_date: "",
+  location: "",
+  status: "scheduled",
+});
+
+const updateField = (key, value) => {
+  setFields((prev) => ({
+    ...prev,
+    [key]: value,
+  }));
+};
+
+
   useEffect(() => {
     const root = document.getElementById("root");
     root.classList.add("aurora-root");
     return () => root.classList.remove("aurora-root");
   }, []);
+
+  useEffect(() => {
+  const loadEvents = async () => {
+    try {
+      const token = localStorage.getItem("access");
+
+      const response = await fetch("/api/events/", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      console.log("EVENTS:", data);
+
+      setEvents(Array.isArray(data.results) ? data.results : []);
+    } catch (error) {
+      console.error("Error fetching events:", error);
+      setEvents([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  loadEvents();
+}, []);
+
+const handleCreateEvent = async () => {
+  try {
+    const token = localStorage.getItem("access");
+
+    const payload = {
+      title: fields.title,
+      event_type: fields.event_type,
+      start_date: fields.start_date,
+      end_date: fields.end_date,
+      location: fields.location,
+      status: fields.status,
+    };
+
+    console.log("EVENT PAYLOAD:", payload);
+
+    const response = await fetch("/api/events/create/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await response.json();
+
+    console.log("CREATE EVENT STATUS:", response.status);
+    console.log("CREATE EVENT DATA:", data);
+
+    if (response.ok) {
+      alert("Event created!");
+
+      setEvents((prev) => [data, ...prev]);
+
+      setFields({
+        title: "",
+        event_type: "conference",
+        start_date: "",
+        end_date: "",
+        location: "",
+        status: "scheduled",
+      });
+    } else {
+      alert("Failed to create event");
+    }
+
+  } catch (error) {
+    console.error("CREATE EVENT ERROR:", error);
+  }
+};
+
+const handleDeleteEvent = async (id) => {
+  try {
+    const token = localStorage.getItem("access");
+
+    console.log("DELETING EVENT:", id);
+
+    const response = await fetch(`/api/events/${id}/`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    console.log("DELETE STATUS:", response.status);
+
+    if (response.status === 204) {
+      alert("Event deleted!");
+
+      setEvents((prev) =>
+        prev.filter((event) => event.id !== id)
+      );
+    } else {
+      const data = await response.json();
+
+      console.log("DELETE ERROR:", data);
+
+      alert("Failed to delete event");
+    }
+
+  } catch (error) {
+    console.error("DELETE EVENT ERROR:", error);
+  }
+};
+
+const handleEditClick = (event) => {
+  setEditingId(event.id);
+
+  setFields({
+    title: event.title || "",
+    event_type: event.event_type || "conference",
+    start_date: event.start_date || "",
+    end_date: event.end_date || "",
+    location: event.location || "",
+    status: event.status || "scheduled",
+  });
+};
+
+const handleUpdateEvent = async () => {
+  try {
+    const token = localStorage.getItem("access");
+
+    const payload = {
+      title: fields.title,
+      event_type: fields.event_type,
+      start_date: fields.start_date,
+      end_date: fields.end_date,
+      location: fields.location,
+      status: fields.status,
+    };
+
+    console.log("UPDATING EVENT:", payload);
+
+    const response = await fetch(
+      `/api/events/${editingId}/`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      }
+    );
+
+    const data = await response.json();
+
+    console.log("UPDATE STATUS:", response.status);
+    console.log("UPDATE DATA:", data);
+
+    if (response.ok) {
+      alert("Event updated!");
+
+      setEvents((prev) =>
+        prev.map((event) =>
+          event.id === editingId ? data : event
+        )
+      );
+
+      setEditingId(null);
+
+      setFields({
+        title: "",
+        event_type: "conference",
+        start_date: "",
+        end_date: "",
+        location: "",
+        status: "scheduled",
+      });
+    } else {
+      alert("Failed to update event");
+    }
+
+  } catch (error) {
+    console.error("UPDATE ERROR:", error);
+  }
+};
+
+
 
   return (
     <div className="events-container">
@@ -62,18 +265,170 @@ const EventsPage = () => {
           Academic and institutional events.
         </p>
 
+<div
+  style={{
+    background: CARD_BG,
+    border: `1px solid ${BORDER}`,
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 24,
+  }}
+>
+  <h3>Create Event</h3>
+
+  <input
+    type="text"
+    placeholder="Event Title"
+    value={fields.title}
+    onChange={(e) =>
+      updateField("title", e.target.value)
+    }
+    style={inputStyle}
+  />
+
+  <select
+    value={fields.event_type}
+    onChange={(e) =>
+      updateField("event_type", e.target.value)
+    }
+    style={inputStyle}
+  >
+    <option value="conference">Conference</option>
+    <option value="fdp">FDP</option>
+    <option value="workshop">Workshop</option>
+    <option value="seminar">Seminar</option>
+    <option value="webinar">Webinar</option>
+  </select>
+
+  <input
+    type="date"
+    value={fields.start_date}
+    onChange={(e) =>
+      updateField("start_date", e.target.value)
+    }
+    style={inputStyle}
+  />
+
+  <input
+    type="date"
+    value={fields.end_date}
+    onChange={(e) =>
+      updateField("end_date", e.target.value)
+    }
+    style={inputStyle}
+  />
+
+  <input
+    type="text"
+    placeholder="Location"
+    value={fields.location}
+    onChange={(e) =>
+      updateField("location", e.target.value)
+    }
+    style={inputStyle}
+  />
+
+  <select
+    value={fields.status}
+    onChange={(e) =>
+      updateField("status", e.target.value)
+    }
+    style={inputStyle}
+  >
+    <option value="draft">Draft</option>
+    <option value="scheduled">Scheduled</option>
+    <option value="open">Open</option>
+    <option value="running">Running</option>
+    <option value="completed">Completed</option>
+    <option value="cancelled">Cancelled</option>
+  </select>
+
+  <button
+  onClick={
+    editingId
+      ? handleUpdateEvent
+      : handleCreateEvent
+  }
+  style={{
+    marginTop: 14,
+    padding: "10px 18px",
+    border: "none",
+    borderRadius: 8,
+    background: CRIMSON,
+    color: "#fff",
+    cursor: "pointer",
+  }}
+>
+  {editingId ? "Update Event" : "Create Event"}
+</button>
+
+</div>
         <div className="events-grid">
-          {events.map((event, index) => (
-            <div key={index} className="event-card">
-              <h3>{event.title}</h3>
-              <p>
-                <strong>Date:</strong> {event.date}
-              </p>
-              <p>
-                <strong>Location:</strong> {event.location}
-              </p>
-            </div>
-          ))}
+          {loading ? (
+  <p>Loading events...</p>
+) : events.length === 0 ? (
+  <p>No events found.</p>
+) : (
+  events.map((event) => (
+    <div key={event.id} className="event-card">
+      <h3>{event.title}</h3>
+
+      <p>
+        <strong>Type:</strong> {event.event_type}
+      </p>
+
+      <p>
+        <strong>Status:</strong> {event.status}
+      </p>
+
+      <p>
+        <strong>Start:</strong> {event.start_date}
+      </p>
+
+      <p>
+        <strong>End:</strong> {event.end_date}
+      </p>
+
+      <p>
+        <strong>Location:</strong> {event.location}
+      </p>
+
+      <button
+  onClick={() => handleEditClick(event)}
+  style={{
+    marginTop: 10,
+    marginRight: 10,
+    padding: "8px 14px",
+    border: "none",
+    borderRadius: 8,
+    background: "#2563eb",
+    color: "#fff",
+    cursor: "pointer",
+  }}
+>
+  Edit
+</button>
+
+
+      <button
+  onClick={() => handleDeleteEvent(event.id)}
+  style={{
+    marginTop: 10,
+    padding: "8px 14px",
+    border: "none",
+    borderRadius: 8,
+    background: "#2c15c5",
+    color: "#fff",
+    cursor: "pointer",
+  }}
+>
+  Delete
+</button>
+
+
+    </div>
+  ))
+)}
         </div>
       </div>
 
