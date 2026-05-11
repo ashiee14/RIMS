@@ -30,8 +30,8 @@ const handleCredentialResponse = async (response) => {
     console.log("JWT:", res.data);
 
     // ✅ Save backend JWT tokens
-    localStorage.setItem("access", res.data.access);
-    localStorage.setItem("refresh", res.data.refresh);
+    localStorage.setItem("access_token", res.data.access);
+    localStorage.setItem("refresh_token", res.data.refresh);
 
     navigate("/dashboard");
 
