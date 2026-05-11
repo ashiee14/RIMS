@@ -11,12 +11,95 @@ const AwardsPage = () => {
   const [awards, setAwards] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const [editingId, setEditingId] = useState(null);
+const [editForm, setEditForm] = useState({
+  title: "",
+  awarding_agency: "",
+  award_date: "",
+});
+
   useEffect(() => {
     const root = document.getElementById("root");
     root.classList.add("aurora-root");
 
     return () => root.classList.remove("aurora-root");
   }, []);
+
+  const handleDeleteAward = async (id) => {
+  try {
+    const token = localStorage.getItem("access");
+
+    const response = await fetch(`/api/awards/${id}/`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    console.log("DELETE STATUS:", response.status);
+
+    if (response.status === 204) {
+      setAwards((prev) =>
+        prev.filter((award) => award.id !== id)
+      );
+
+      alert("Award deleted successfully!");
+    } else {
+      alert("Failed to delete award");
+    }
+
+  } catch (error) {
+    console.error("DELETE ERROR:", error);
+  }
+};
+
+const handleEditClick = (award) => {
+  setEditingId(award.id);
+
+  setEditForm({
+    title: award.title,
+    awarding_agency: award.awarding_agency,
+    award_date: award.award_date,
+  });
+};
+
+const handleUpdateAward = async (id) => {
+  try {
+    const token = localStorage.getItem("access");
+
+    const response = await fetch(`/api/awards/${id}/`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(editForm),
+    });
+
+    const data = await response.json();
+
+    console.log("UPDATE STATUS:", response.status);
+    console.log("UPDATE DATA:", data);
+
+    if (response.ok) {
+      setAwards((prev) =>
+        prev.map((award) =>
+          award.id === id ? data : award
+        )
+      );
+
+      setEditingId(null);
+
+      alert("Award updated successfully!");
+    } else {
+      alert("Failed to update award");
+    }
+
+  } catch (error) {
+    console.error("UPDATE ERROR:", error);
+  }
+};
+
 
   useEffect(() => {
         const loadAwards = async () => {
@@ -75,16 +158,72 @@ const AwardsPage = () => {
         ) : (
           awards.map((award) => (
             <div key={award.id} className="aurora-card">
+              {editingId === award.id ? (
+              <input
+                value={editForm.title}
+                onChange={(e) =>
+                  setEditForm({
+                    ...editForm,
+                    title: e.target.value,
+                  })
+                }
+                style={{
+                  width: "100%",
+                  padding: "8px",
+                  marginBottom: "10px",
+                  borderRadius: "6px",
+                  border: "1px solid #ccc",
+                }}
+              />
+            ) : (
               <h3>{award.title}</h3>
+            )}
 
               <p>
                 <strong>Awarding Agency:</strong>{" "}
-                {award.awarding_agency}
+                {editingId === award.id ? (
+                    <input
+                      value={editForm.awarding_agency}
+                      onChange={(e) =>
+                        setEditForm({
+                          ...editForm,
+                          awarding_agency: e.target.value,
+                        })
+                      }
+                      style={{
+                        padding: "6px",
+                        borderRadius: "6px",
+                        border: "1px solid #ccc",
+                        marginLeft: "6px",
+                      }}
+                    />
+                  ) : (
+                    award.awarding_agency
+                  )}
               </p>
 
               <p>
                 <strong>Award Date:</strong>{" "}
-                {award.award_date}
+                {editingId === award.id ? (
+                  <input
+                    type="date"
+                    value={editForm.award_date}
+                    onChange={(e) =>
+                      setEditForm({
+                        ...editForm,
+                        award_date: e.target.value,
+                      })
+                    }
+                    style={{
+                      padding: "6px",
+                      borderRadius: "6px",
+                      border: "1px solid #ccc",
+                      marginLeft: "6px",
+                    }}
+                  />
+                ) : (
+                  award.award_date
+                )}
               </p>
 
               {award.recipient && (
@@ -93,6 +232,57 @@ const AwardsPage = () => {
                   {award.recipient.full_name}
                 </p>
               )}
+
+
+              {editingId === award.id ? (
+                <button
+                  onClick={() => handleUpdateAward(award.id)}
+                  style={{
+                    marginTop: 12,
+                    marginRight: 10,
+                    background: "#1890ff",
+                    color: "#fff",
+                    border: "none",
+                    padding: "8px 14px",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                  }}
+                >
+                  Save
+                </button>
+              ) : (
+                <button
+                  onClick={() => handleEditClick(award)}
+                  style={{
+                    marginTop: 12,
+                    marginRight: 10,
+                    background: "#1d65e1",
+                    color: "#fff",
+                    border: "none",
+                    padding: "8px 14px",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                  }}
+                >
+                  Edit
+                </button>
+              )}
+
+              <button
+                  onClick={() => handleDeleteAward(award.id)}
+                  style={{
+                    marginTop: 12,
+                    background: "#261ce9",
+                    color: "#fff",
+                    border: "none",
+                    padding: "8px 14px",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                    alignContent: "right",
+                  }}
+                >
+                  Delete Award
+                </button>
             </div>
           ))
         )}

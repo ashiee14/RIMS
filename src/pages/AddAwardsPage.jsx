@@ -12,8 +12,48 @@ const {
 } = COLORS;
 
 const AddAwardsPage = ({ onNav }) => {
-  const [fields, setFields] = useState({ faculty: "Aayush Gupta", dept: "Dermatology, Venereology & Leprosy", title: "Certificate of Recognition", date: "01-10-2023", agency: "Not specified", location: "Not specified", level: "", category: "", description: "" });
+  const [fields, setFields] = useState({ faculty: "Enter name", dept: "Enter department", title: "Enter Title", date: "2023-10-01", agency: "Not specified", location: "Not specified", level: "", category: "", description: "" });
   const update = (k, v) => setFields(p => ({ ...p, [k]: v }));
+  const handleSaveAward = async () => {
+  console.log("BUTTON CLICKED");
+
+  try {
+    const token = localStorage.getItem("access");
+
+    const payload = {
+      title: fields.title,
+      awarding_agency: fields.agency,
+      award_date: fields.date,
+      recipient_id: 1,
+    };
+
+    console.log("SENDING:", payload);
+
+    const response = await fetch("/api/awards/create/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await response.json();
+
+    console.log("CREATE STATUS:", response.status);
+    console.log("CREATE DATA:", data);
+
+    if (response.ok) {
+      alert("Award created successfully!");
+    } else {
+      alert("Failed to create award");
+    }
+
+  } catch (error) {
+    console.error("CREATE ERROR:", error);
+  }
+};
+
   const labelStyle = { fontSize: 13, fontWeight: 500, marginBottom: 6, display: "block", color: TEXT };
   const reqStar = <span style={{ color: CRIMSON }}>*</span>;
   const inputStyle = { width: "100%", padding: "10px 12px", border: `1px solid ${BORDER}`, borderRadius: 8, fontSize: 13, color: TEXT, background: "#fff", outline: "none" };
@@ -68,8 +108,22 @@ const AddAwardsPage = ({ onNav }) => {
         </div>
         <div style={{ display: "flex", gap: 12, marginTop: 24, justifyContent: "flex-end" }}>
           <button style={{ padding: "10px 24px", border: `1px solid ${BORDER}`, borderRadius: 8, background: "#fff", fontSize: 13, cursor: "pointer" }}>Cancel</button>
-          <button style={{ padding: "10px 24px", background: CRIMSON, color: "#fff", border: "none", borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: "pointer" }}>Save Award</button>
-        </div>
+            <button
+              onClick={handleSaveAward}
+              style={{
+                padding: "10px 24px",
+                background: CRIMSON,
+                color: "#fff",
+                border: "none",
+                borderRadius: 8,
+                fontSize: 13,
+                fontWeight: 500,
+                cursor: "pointer"
+              }}
+            >
+              Save Award
+            </button>        
+          </div>
       </div>
     </div>
   );
