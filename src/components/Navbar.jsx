@@ -1,7 +1,8 @@
 // src/components/Navbar.jsx
 import { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { COLORS } from "../styles/theme";
+import { useAuth } from "../contexts/AuthContext";
 
 const {
   crimson: CRIMSON,
@@ -186,6 +187,8 @@ const Dropdown = ({ label, icon, items, color = "outline", align="left" }) => {
 /* ─── Navbar Component ─────────────────────────────── */
 
 export default function Navbar() {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const toolItems = [
   { label: "SDG Tagger", path: "/sdg-tagger" },
   { label: "Journal Checker", path: "/journal-checker" },
@@ -195,8 +198,6 @@ export default function Navbar() {
 
   const viewItems = [
   { label: "Publications", path: "/publications" },
-  { label: "Conference", path: "/conference" },
-  { label: "FDP", path: "/fdp" },
   { label: "Awards", path: "/awards" },
   { label: "IPR", path: "/ipr" },
   { label: "Papers", path: "/papers" },
@@ -258,14 +259,14 @@ export default function Navbar() {
       <Dropdown label="View Research" items={viewItems} />
       <Dropdown label="Add Research" color="crimson" items={addItems} />
       <Dropdown
-        label="User1"
+        label={user?.name || "User"}
         color="dark"
         align="right"
         icon={<UserIcon />}
         items={[
             { label: "My Profile", path: "/user-profile" },
             { label: "Admin Panel", path: "/admin" },
-            { label: "Sign Out", path: "/" },
+            { label: "Sign Out", onClick: () => { logout(); navigate('/'); } },
         ]}
         />
     </nav>

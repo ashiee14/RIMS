@@ -3,49 +3,47 @@ import { useNavigate } from "react-router-dom";
 import Aurora from "../components/Aurora";
 import { COLORS, FONT, RADIUS } from "../styles/theme";
 import { Logo, GoogleIcon } from "../components/Icons";
-
-import axios from "axios";
+import { useAuth } from "../contexts/AuthContext";
 
 const HomePage = () => {
   const navigate = useNavigate();
-
-  const handleGoogleLogin = () => {
-  window.google.accounts.id.initialize({
-    client_id: "1089389799172-pe5fqqpah4glvkv622ti19bd9ik37fd4.apps.googleusercontent.com",
-    callback: handleCredentialResponse,
-  });
-
-  window.google.accounts.id.prompt(); // opens Google popup
-};
-
-
-const handleCredentialResponse = async (response) => {
-  try {
-    console.log("Google Token:", response.credential);
-
-    const res = await axios.post("/api/users/auth/google/", {
-      token: response.credential,
-    });
-
-    console.log("JWT:", res.data);
-
-    // ✅ Save backend JWT tokens
-    localStorage.setItem("access_token", res.data.access);
-    localStorage.setItem("refresh_token", res.data.refresh);
-
-    navigate("/dashboard");
-
-  } catch (err) {
-    console.error("FULL ERROR:", err.response?.data || err.message);
-  }
-};
-
+  const { login, user, loading } = useAuth();
 
   useEffect(() => {
-    const root = document.getElementById("root");
-    root.classList.add("home-root");
-    return () => root.classList.remove("home-root");
-  }, []);
+    if (!loading && user) {
+      navigate("/dashboard");
+    }
+  }, [user, loading, navigate]);
+
+  const handleGoogleLogin = () => {
+    window.google.accounts.id.initialize({
+      client_id: "1089389799172-pe5fqqpah4glvkv622ti19bd9ik37fd4.apps.googleusercontent.com",
+      callback: handleCredentialResponse,
+    });
+
+    window.google.accounts.id.prompt(); // opens Google popup
+  };
+
+  const handleCredentialResponse = async (response) => {
+    try {
+      console.log("Google Token:", response.credential);
+
+      await login(response.credential);
+
+      navigate("/dashboard");
+
+    } catch (err) {
+      console.error("FULL ERROR:", err.response?.data || err.message);
+    }
+  };
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (user) {
+    return null; // Will redirect
+  }
 
   return (
     <div className="home-container">
@@ -93,14 +91,8 @@ const handleCredentialResponse = async (response) => {
               (e.currentTarget.style.boxShadow = "none")
             }
           >
-            <div className="user-avatar">U1</div>
-
-            <div className="user-details">
-              <div className="user-name">Sign in as User1</div>
-              <div className="user-email">user1.demo@gmail.com</div>
-            </div>
-
             <GoogleIcon size={20} />
+            <span>Sign in with Google</span>
           </button>
 
           {/* Support Link */}
@@ -178,6 +170,7 @@ const handleCredentialResponse = async (response) => {
         .signin-button {
           display: flex;
           align-items: center;
+          justify-content: center;
           gap: 14px;
           padding: 14px 20px;
           border: 1.5px solid rgba(255, 255, 255, 0.5);
@@ -190,6 +183,8 @@ const handleCredentialResponse = async (response) => {
           margin: 0 auto;
           color: #ffffff;
           transition: all 0.2s ease;
+          font-size: 16px;
+          font-weight: 500;
         }
 
         .user-avatar {
