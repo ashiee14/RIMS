@@ -14,7 +14,118 @@ API.interceptors.request.use((config) => {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
-});
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+/* ────────────────────────────────────────────────────────────────
+   AUTO TOKEN REFRESH
+──────────────────────────────────────────────────────────────── */
+
+API.interceptors.response.use(
+  (response) => response,
+
+  async (error) => {
+    const originalRequest = error.config;
+
+    // Access token expired
+    if (
+        error.response?.status === 401 &&
+        !originalRequest._retry &&
+        !originalRequest.url.includes("/users/auth/token/refresh/")
+      ) {
+      originalRequest._retry = true;
+
+      try {
+        const newAccess = await refreshAccessToken();
+
+        originalRequest.headers.Authorization =
+          `Bearer ${newAccess}`;
+
+        return API(originalRequest);
+
+      } catch (refreshError) {
+
+        // Logout if refresh fails
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+
+        window.location.href = "/login";
+
+        return Promise.reject(refreshError);
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
+
+
+/* ────────────────────────────────────────────────────────────────
+   GOOGLE AUTH
+──────────────────────────────────────────────────────────────── */
+
+// Exchange Google token for JWT tokens
+export const googleLogin = async (googleToken, userInfo = null) => {
+  const res = await API.post("/users/auth/google/", {
+    token: googleToken,
+  });
+
+  // Store JWT tokens
+  localStorage.setItem("access_token", res.data.access);
+  localStorage.setItem("refresh_token", res.data.refresh);
+
+  // Store Google user info
+  if (userInfo) {
+    localStorage.setItem(
+      "user_info",
+      JSON.stringify(userInfo)
+    );
+  }
+
+  return res.data;
+};
+
+
+/* ────────────────────────────────────────────────────────────────
+   LOGOUT
+──────────────────────────────────────────────────────────────── */
+
+export const logout = () => {
+  localStorage.removeItem("access_token");
+  localStorage.removeItem("refresh_token");
+  localStorage.removeItem("user_info");
+
+  window.location.href = "/login";
+};
+
+/* ────────────────────────────────────────────────────────────────
+   REFRESH TOKEN
+──────────────────────────────────────────────────────────────── */
+
+export const refreshAccessToken = async () => {
+  const refresh = localStorage.getItem("refresh_token");
+
+  if (!refresh) {
+    throw new Error("No refresh token found");
+  }
+
+  const res = await axios.post(
+    `${BASE_URL}/users/auth/token/refresh/`,
+    {
+      refresh,
+    }
+  );
+
+  const newAccess = res.data.access;
+
+  localStorage.setItem("access_token", newAccess);
+
+  return newAccess;
+};
+
 
 
 // Utility function to simulate API delay
@@ -74,7 +185,7 @@ export const getOverviewStats = async () => {
 
 /* ────────────────────────────────────────────────────────────────
    Quartile Distribution
-──────────────────────────────────────────────────────────────── */
+──────────────────────────────────────────────────────────────── */ 
 export const getQuartileData = async () => {
   await delay(300);
   return [
@@ -272,3 +383,5 @@ export const deleteProject = async (id) => {
   const res = await API.delete(`/projects/${id}/`);
   return res.data;
 };
+
+export default API;

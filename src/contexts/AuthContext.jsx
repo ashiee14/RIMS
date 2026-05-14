@@ -12,21 +12,27 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const storedUser = JSON.parse(
+  localStorage.getItem("user_info")
+);
+
+const [user, setUser] = useState(storedUser || null);
+
+
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const initAuth = async () => {
-      const token = localStorage.getItem('access_token');
-      if (token) {
-        // TODO: Call an endpoint to get user info or decode JWT
-        setUser({ name: 'User', email: 'user@example.com' }); // Placeholder
-      }
-      setLoading(false);
-    };
+  const token = localStorage.getItem("access_token");
 
-    initAuth();
-  }, []);
+  if (token && storedUser) {
+    setUser(storedUser);
+  } else {
+    setUser(null);
+  }
+
+  setLoading(false);
+}, []);
+
 
   const login = async (googleToken) => {
     try {
@@ -49,6 +55,16 @@ export const AuthProvider = ({ children }) => {
         email: payload.email,
         picture: payload.picture,
       });
+
+      localStorage.setItem(
+  "user_info",
+  JSON.stringify({
+    name: payload.name,
+    email: payload.email,
+    picture: payload.picture,
+  })
+);
+
     } catch (error) {
       console.error('Login failed:', error);
       throw error;
@@ -58,6 +74,8 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
+    localStorage.removeItem("user_info");
+    
     setUser(null);
   };
 

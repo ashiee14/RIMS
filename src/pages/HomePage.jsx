@@ -25,17 +25,31 @@ const HomePage = () => {
   };
 
   const handleCredentialResponse = async (response) => {
-    try {
-      console.log("Google Token:", response.credential);
+  try {
+    console.log("Google Token:", response.credential);
 
-      await login(response.credential);
+    // Decode Google JWT
+    const payload = JSON.parse(
+      atob(response.credential.split(".")[1])
+    );
 
-      navigate("/dashboard");
+    const userInfo = {
+      name: payload.name,
+      email: payload.email,
+      picture: payload.picture,
+    };
 
-    } catch (err) {
-      console.error("FULL ERROR:", err.response?.data || err.message);
-    }
-  };
+    await login(response.credential, userInfo);
+
+    navigate("/dashboard");
+
+  } catch (err) {
+    console.error(
+      "FULL ERROR:",
+      err.response?.data || err.message
+    );
+  }
+};
 
   if (loading) {
     return <div>Loading...</div>;
