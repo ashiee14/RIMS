@@ -1,5 +1,22 @@
 // src/services/api.js
 import axios from "axios";
+
+const BASE_URL = "https://rims-api.prerna.sh/api";
+
+const API = axios.create({
+  baseURL: BASE_URL,
+});
+
+// Attach JWT token automatically
+API.interceptors.request.use((config) => {
+  const token = localStorage.getItem("access_token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+
 // Utility function to simulate API delay
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -225,20 +242,7 @@ export const getColleges = async () => {
 
 
 
-const BASE_URL = "/api";
 
-const API = axios.create({
-  baseURL: BASE_URL,
-});
-
-// Attach JWT token automatically
-API.interceptors.request.use((config) => {
-  const token = localStorage.getItem("access_token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
 
 
 /* ────────────────────────────────────────────────────────────────
