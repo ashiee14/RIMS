@@ -18,7 +18,7 @@ const AddAwardsPage = ({ onNav }) => {
   console.log("BUTTON CLICKED");
 
   try {
-    const token = localStorage.getItem("access");
+    const token = localStorage.getItem("access_token");
 
     const payload = {
       title: fields.title,

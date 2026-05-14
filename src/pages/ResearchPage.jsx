@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Aurora from "../components/Aurora";
 import { COLORS } from "../styles/theme";
 import { fetchProjects } from "../services/api";
@@ -16,11 +16,29 @@ const {
 } = COLORS;
 
 const ResearchPage = ({ onNav }) => {
-  const [timeFilter, setTimeFilter] = useState("current");
-  const [rows, setRows] = useState([]); 
+  const [timeFilter, setTimeFilter] = useState("Current Year");
+  const [rows, setRows] = useState([]);
 
+  const filteredRows = useMemo(() => {
+    const currentYear = new Date().getFullYear();
 
+    const yearRange = {
+      "Current Year": [currentYear, currentYear],
+      "Last Year": [currentYear - 1, currentYear - 1],
+      "Last 3 Years": [currentYear - 2, currentYear],
+      All: [1900, currentYear],
+    }[timeFilter] || [1900, currentYear];
 
+    const [minYear, maxYear] = yearRange;
+
+    return rows
+      .filter((row) => {
+        if (!row.date) return false;
+        const year = new Date(row.date).getFullYear();
+        return year >= minYear && year <= maxYear;
+      })
+      .sort((a, b) => new Date(b.date) - new Date(a.date));
+  }, [rows, timeFilter]);
 
   // Adds aurora styling to the root
   useEffect(() => {
@@ -117,27 +135,31 @@ const ResearchPage = ({ onNav }) => {
             Research Projects
           </h1>
 
-          <div style={{ display: "flex", gap: 6 }}>
-            {["Current Year", "Last Year", "Last 3 Years", "All"].map((l) => (
-              <button
-                key={l}
-                onClick={() => setTimeFilter(l)}
-                style={{
-                  padding: "7px 14px",
-                  borderRadius: 7,
-                  fontSize: 12,
-                  fontWeight: 500,
-                  cursor: "pointer",
-                  background: timeFilter === l ? CRIMSON : "#fff",
-                  color: timeFilter === l ? "#fff" : TEXT,
-                  border: `1px solid ${
-                    timeFilter === l ? CRIMSON : BORDER
-                  }`,
-                }}
-              >
-                {l}
-              </button>
-            ))}
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {["Current Year", "Last Year", "Last 3 Years", "All"].map((l) => {
+              const active = timeFilter === l;
+              return (
+                <button
+                  key={l}
+                  onClick={() => setTimeFilter(l)}
+                  style={{
+                    padding: "9px 16px",
+                    borderRadius: 999,
+                    fontSize: 12,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    transition: "all 0.15s ease",
+                    background: active ? CRIMSON : "rgba(255,255,255,0.12)",
+                    color: active ? "#fff" : "#f5f5f5",
+                    border: active ? `1px solid ${CRIMSON}` : `1px solid rgba(255,255,255,0.18)`,
+                    boxShadow: active ? "0 8px 20px rgba(160, 39, 124, 0.18)" : "none",
+                    outline: "none",
+                  }}
+                >
+                  {l}
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -190,7 +212,7 @@ const ResearchPage = ({ onNav }) => {
                 </tr>
               </thead>
               <tbody>
-                {rows.map((r) => (
+                {filteredRows.map((r) => (
                   <tr
                     key={r.id}
                     style={{ borderBottom: `1px solid ${BORDER}` }}

@@ -65,7 +65,7 @@ const handleEditClick = (award) => {
 
 const handleUpdateAward = async (id) => {
   try {
-    const token = localStorage.getItem("access");
+    const token = localStorage.getItem("access_token");
 
     const response = await fetch(`/api/awards/${id}/`, {
       method: "PATCH",
@@ -104,7 +104,7 @@ const handleUpdateAward = async (id) => {
   useEffect(() => {
         const loadAwards = async () => {
       try {
-        const token = localStorage.getItem("access");
+        const token = localStorage.getItem("access_token");
 
         console.log("TOKEN:", token);
 

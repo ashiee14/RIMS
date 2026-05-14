@@ -75,7 +75,7 @@ const updateField = (key, value) => {
 
 const handleCreateEvent = async () => {
   try {
-    const token = localStorage.getItem("access");
+    const token = localStorage.getItem("access_token");
 
     const payload = {
       title: fields.title,
@@ -126,7 +126,7 @@ const handleCreateEvent = async () => {
 
 const handleDeleteEvent = async (id) => {
   try {
-    const token = localStorage.getItem("access");
+    const token = localStorage.getItem("access_token");
 
     console.log("DELETING EVENT:", id);
 
@@ -173,7 +173,7 @@ const handleEditClick = (event) => {
 
 const handleUpdateEvent = async () => {
   try {
-    const token = localStorage.getItem("access");
+    const token = localStorage.getItem("access_token");
 
     const payload = {
       title: fields.title,

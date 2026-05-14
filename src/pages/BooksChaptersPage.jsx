@@ -75,7 +75,7 @@ const handleSaveBook = async () => {
   try {
     console.log("SAVE BOOK CLICKED");
 
-    const token = localStorage.getItem("access");
+    const token = localStorage.getItem("access_token");
 
     const payload = {
       title: fields.title,
@@ -124,7 +124,7 @@ const handleSaveBook = async () => {
 
 const handleDeleteBook = async (id) => {
   try {
-    const token = localStorage.getItem("access");
+    const token = localStorage.getItem("access_token");
 
     console.log("DELETING BOOK:", id);
 
@@ -169,7 +169,7 @@ const handleEditBook = (book) => {
 
 const handleUpdateBook = async () => {
   try {
-    const token = localStorage.getItem("access");
+    const token = localStorage.getItem("access_token");
 
     const payload = {
       title: fields.title,
@@ -310,7 +310,7 @@ const handleUpdateBook = async () => {
       cursor: "pointer",
     }}
   >
-    {editingBookId ? "Update Book" : "Save Book"}s
+    {editingBookId ? "Update Book" : "Save Book"}
   </button>
 </div>
         {loading ? (
