@@ -1,6 +1,7 @@
 // src/services/api.js
 import axios from "axios";
 
+
 const BASE_URL = "https://rims-api.prerna.sh/api";
 
 const API = axios.create({
@@ -361,8 +362,10 @@ export const getColleges = async () => {
 ──────────────────────────────────────────────────────────────── */
 
 // GET all projects
-export const fetchProjects = async () => {
-  const res = await API.get("/projects/");
+export const fetchProjects = async (params = {}) => {
+  const res = await API.get("/projects/", {
+    params,
+  });
   return res.data;
 };
 
@@ -383,5 +386,57 @@ export const deleteProject = async (id) => {
   const res = await API.delete(`/projects/${id}/`);
   return res.data;
 };
+
+
+/* ────────────────────────────────────────────────────────────────
+   Publications API
+──────────────────────────────────────────────────────────────── */
+
+// GET all publications
+export const fetchPublications = async (params = {}) => {
+  const res = await API.get("/publications/", {
+    params,
+  });
+
+  return res.data;
+};
+
+// GET publication by ID
+export const fetchPublicationById = async (id) => {
+  const res = await API.get(`/publications/${id}/`);
+  return res.data;
+};
+
+// GET logged-in user's publications
+export const fetchMyPublications = async () => {
+  const res = await API.get("/publications/mine/");
+  return res.data;
+};
+
+// SEARCH publications
+export const searchPublications = async (query, type = "all") => {
+  const res = await API.get("/publications/search/", {
+    params: {
+      q: query,
+      type,
+    },
+  });
+
+  return res.data;
+};
+
+// GET publication stats
+export const fetchPublicationStats = async () => {
+  const res = await API.get("/publications/stats/");
+  return res.data;
+};
+
+// SYNC publications
+export const syncPublications = async () => {
+  const res = await API.post("/publications/sync/");
+  return res.data;
+};
+
+
 
 export default API;

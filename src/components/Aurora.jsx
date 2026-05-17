@@ -3,7 +3,7 @@ import React from "react";
 const Aurora = ({
   colorStops = ["#4618ff", "#8769fe", "#000000", "#2200a8"],
   amplitude = 1,
-  blend = 0.5,
+  blend = 0.5,  
 }) => {
   return (
     <div className="aurora-container">
