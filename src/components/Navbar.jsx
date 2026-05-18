@@ -209,6 +209,7 @@ export default function Navbar() {
 
   const addItems = [
     { label: "Add Publication", path: "/add-publication" },
+    { label: "Add IPR", path: "/add-ipr" },
     { label: "Add Award", path: "/add-awards" },
     { label: "Add Research Project", path: "/add-research-project" },
   ];

@@ -349,15 +349,6 @@ export const getColleges = async () => {
 
 
 /* ────────────────────────────────────────────────────────────────
-   REAL API INTEGRATION (DO NOT MODIFY ABOVE CODE)
-──────────────────────────────────────────────────────────────── */
-
-
-
-
-
-
-/* ────────────────────────────────────────────────────────────────
    Research Projects API
 ──────────────────────────────────────────────────────────────── */
 
@@ -438,5 +429,43 @@ export const syncPublications = async () => {
 };
 
 
+/* ────────────────────────────────────────────────────────────────
+   IPR API
+──────────────────────────────────────────────────────────────── */
+
+export const fetchIPRs = async (params = {}) => {
+  const res = await API.get("/ipr/", {
+    params: {
+      ordering: "-id",
+      ...params,
+    },
+  });
+
+  return res.data;
+};
+
+// GET IPR by ID
+export const fetchIPRById = async (id) => {
+  const res = await API.get(`/ipr/${id}/`);
+  return res.data;
+};
+
+// CREATE IPR
+export const addIPR = async (data) => {
+  const res = await API.post("/ipr/create/", data);
+  return res.data;
+};
+
+// UPDATE IPR
+export const updateIPR = async (id, data) => {
+  const res = await API.patch(`/ipr/${id}/`, data);
+  return res.data;
+};
+
+// DELETE IPR
+export const deleteIPR = async (id) => {
+  const res = await API.delete(`/ipr/${id}/`);
+  return res.data;
+};  
 
 export default API;

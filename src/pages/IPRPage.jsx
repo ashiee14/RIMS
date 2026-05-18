@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import Aurora from "../components/Aurora";
 import { COLORS } from "../styles/theme";
+import { fetchIPRs } from "../services/api";
+import { useNavigate } from "react-router-dom";
 
 const {
   crimson: CRIMSON,
@@ -11,8 +13,8 @@ const {
 
 const IPRPage = () => {
   const [iprs, setIprs] = useState([]);
-const [loading, setLoading] = useState(true);
-
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const root = document.getElementById("root");
@@ -23,21 +25,18 @@ const [loading, setLoading] = useState(true);
   useEffect(() => {
   const loadIPRs = async () => {
     try {
-      const token = localStorage.getItem("access_token");
+      const data = await fetchIPRs();
 
-      const response = await fetch("/api/ipr/", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      console.log("FULL IPR RESPONSE:", data);
 
-      const data = await response.json();
+      const iprArray =
+      data.results ||
+      data.data ||
+      data.iprs ||
+      data.items ||
+      (Array.isArray(data) ? data : []);
 
-      console.log("IPRS:", data);
-
-      const iprArray = Array.isArray(data)
-        ? data
-        : data.results || [];
+    console.log("FINAL IPR ARRAY:", iprArray);
 
       setIprs(iprArray);
 
@@ -59,6 +58,14 @@ const [loading, setLoading] = useState(true);
       <div className="aurora-content">
         <h1 style={{ color: CRIMSON }}>Intellectual Property Rights (IPR)</h1>
         <p style={{ color: TEXT_MUTED }}>Patents, copyrights, and trademarks.</p>
+
+        <button
+          onClick={() => navigate("/add-ipr")}
+          className="add-btn"
+        >
+          Add IPR
+        </button>
+
 
         {loading ? (
   <p>Loading IPR records...</p>
@@ -102,6 +109,14 @@ const [loading, setLoading] = useState(true);
           padding: 16px;
           margin-top: 12px;
         }
+          .add-btn {
+            margin: 16px 0;
+            padding: 12px 18px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+          }
       `}</style>
     </div>
   );
