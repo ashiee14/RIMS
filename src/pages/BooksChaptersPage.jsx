@@ -242,16 +242,7 @@ const handleUpdateBook = async () => {
           Published books and book chapters.
         </p>
 
-<div
-  style={{
-    background: CARD_BG,
-    border: `1px solid ${BORDER}`,
-    borderRadius: 12,
-    padding: 20,
-    marginTop: 20,
-    marginBottom: 20,
-  }}
->
+<div className="form-card">
   <h3>Add Book</h3>
 
   <input
@@ -294,22 +285,16 @@ const handleUpdateBook = async () => {
     style={inputStyle}
   />
 
-  <button
-    onClick={
-  editingBookId
-    ? handleUpdateBook
-    : handleSaveBook
-}
-    style={{
-      marginTop: 12,
-      padding: "10px 18px",
-      border: "none",
-      borderRadius: 8,
-      background: CRIMSON,
-      color: "#fff",
-      cursor: "pointer",
-    }}
-  >
+<button
+  onClick={
+    editingBookId
+      ? handleUpdateBook
+      : handleSaveBook
+  }
+  className="action-btn save-btn"
+>
+
+
     {editingBookId ? "Update Book" : "Save Book"}
   </button>
 </div>
@@ -318,72 +303,245 @@ const handleUpdateBook = async () => {
       ) : books.length === 0 ? (
         <p>No books found.</p>
       ) : (
-        books.map((book) => (
-          <div
-            key={book.id}
-            style={{
-              background: CARD_BG,
-              border: `1px solid ${BORDER}`,
-              borderRadius: 12,
-              padding: 16,
-              marginTop: 12,
-            }}
-          >
+        <div className="books-grid">
+  {books.map((book) => (
+    <div
+      key={book.id}
+      className="book-card"
+    >
             <h3>{book.title}</h3>
             <p><strong>Publisher:</strong> {book.publisher}</p>
             <p><strong>ISBN:</strong> {book.isbn || "N/A"}</p>
             <p><strong>Year:</strong> {book.year}</p>
             <p><strong>Pages:</strong> {book.pages || "N/A"}</p>
 
-            <button
-  onClick={() => handleEditBook(book)}
-  style={{
-    marginTop: 10,
-    marginRight: 10,
-    padding: "8px 14px",
-    border: "none",
-    borderRadius: 8,
-    background: "#2563eb",
-    color: "#fff",
-    cursor: "pointer",
-  }}
->
-  Edit
-</button>
-
+            <div className="btn-row">
+  <button
+    onClick={() => handleEditBook(book)}
+    className="action-btn edit-btn"
+  >
+    Edit
+  </button>
 
   <button
-  onClick={() => handleDeleteBook(book.id)}
-  style={{
-    marginTop: 10,
-    padding: "8px 14px",
-    border: "none",
-    borderRadius: 8,
-    background: "#2635dc",
-    color: "#fff",
-    cursor: "pointer",
-  }}
->
-  Delete
-</button>
+    onClick={() => handleDeleteBook(book.id)}
+    className="action-btn delete-btn"
+  >
+    Delete
+  </button>
+</div>
           </div>
-        )))}
+          ))}
+</div>
+)}
       </div>
 
       <style>{`
-        .aurora-page {
-          position: relative;
-          min-height: 100vh;
-          overflow: hidden;
-        }
-        .aurora-content {
-          position: relative;
-          z-index: 1;
-          margin: 0 auto;
-          padding: 28px;
-          color: #fff;
-        }
-      `}</style>
+  .aurora-page {
+    position: relative;
+    min-height: 100vh;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .aurora-content {
+    position: relative;
+    z-index: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: clamp(16px, 3vw, 28px);
+    color: #ffffff;
+  }
+
+  .books-grid {
+    display: grid;
+    grid-template-columns: repeat(
+      auto-fit,
+      minmax(260px, 1fr)
+    );
+    gap: 20px;
+  }
+
+  .book-card {
+    background: rgba(255, 255, 255, 0.12);
+
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+
+    border: 1px solid rgba(255, 255, 255, 0.2);
+
+    border-radius: 12px;
+
+    padding: 20px;
+
+    color: #ffffff;
+
+    transition:
+      transform 0.3s ease,
+      box-shadow 0.3s ease;
+  }
+
+  .book-card:hover {
+    transform: translateY(-5px);
+
+    box-shadow:
+      0 8px 20px
+      rgba(0, 0, 0, 0.25);
+  }
+
+  .book-card h3 {
+    margin-bottom: 12px;
+    font-size: 20px;
+  }
+
+  .book-card p {
+    margin: 8px 0;
+    color: rgba(255,255,255,0.92);
+  }
+
+  .form-card {
+    background: rgba(255, 255, 255, 0.12);
+
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+
+    border: 1px solid rgba(255,255,255,0.2);
+
+    border-radius: 12px;
+
+    padding: 20px;
+
+    margin-top: 20px;
+    margin-bottom: 24px;
+  }
+
+  .form-card input {
+    width: 100%;
+
+    padding: 12px;
+
+    margin-top: 10px;
+
+    border-radius: 8px;
+
+    border: none;
+
+    outline: none;
+
+    background: rgba(255,255,255,0.92);
+
+    color: #111;
+  }
+
+  .form-card input::placeholder {
+    color: #666;
+  }
+
+  .action-btn {
+    margin-top: 12px;
+
+    padding: 10px 18px;
+
+    border: none;
+
+    border-radius: 8px;
+
+    color: #fff;
+
+    cursor: pointer;
+
+    font-weight: bold;
+
+    transition: 0.25s ease;
+  }
+
+  .action-btn:hover {
+    transform: translateY(-2px);
+    opacity: 0.92;
+  }
+
+  .save-btn {
+    background: ${CRIMSON};
+  }
+
+  .edit-btn {
+    background: #2563eb;
+    margin-right: 10px;
+  }
+
+  .delete-btn {
+    background: #2635dc;
+  }
+
+  .btn-row {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+  }
+
+  /* Aurora Background Safety */
+  .aurora-container {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .aurora-layer {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    animation:
+      auroraMove 18s infinite
+      alternate ease-in-out;
+  }
+
+  .aurora-layer-1 {
+    animation-delay: 0s;
+  }
+
+  .aurora-layer-2 {
+    animation-delay: 4s;
+  }
+
+  .aurora-layer-3 {
+    animation-delay: 8s;
+  }
+
+  @keyframes auroraMove {
+    0% {
+      transform:
+        translate(0, 0)
+        scale(1);
+    }
+
+    50% {
+      transform:
+        translate(40px, -30px)
+        scale(1.1);
+    }
+
+    100% {
+      transform:
+        translate(-30px, 40px)
+        scale(1.05);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .aurora-content {
+      text-align: center;
+    }
+
+    .btn-row {
+      justify-content: center;
+    }
+  }
+`}</style>
+
+
     </div>
   );
 };

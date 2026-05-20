@@ -349,16 +349,11 @@ const handleUpdateEvent = async () => {
       ? handleUpdateEvent
       : handleCreateEvent
   }
-  style={{
-    marginTop: 14,
-    padding: "10px 18px",
-    border: "none",
-    borderRadius: 8,
-    background: CRIMSON,
-    color: "#fff",
-    cursor: "pointer",
-  }}
+  className="event-btn event-create-btn"
+  style={{ marginTop: 14 }}
 >
+
+  
   {editingId ? "Update Event" : "Create Event"}
 </button>
 
@@ -395,34 +390,18 @@ const handleUpdateEvent = async () => {
 
       <button
   onClick={() => handleEditClick(event)}
-  style={{
-    marginTop: 10,
-    marginRight: 10,
-    padding: "8px 14px",
-    border: "none",
-    borderRadius: 8,
-    background: "#2563eb",
-    color: "#fff",
-    cursor: "pointer",
-  }}
+  className="event-btn event-edit-btn"
+  style={{ marginTop: 10, marginRight: 10 }}
 >
   Edit
 </button>
 
 
-      <button
+<button
   onClick={() => handleDeleteEvent(event.id)}
-  style={{
-    marginTop: 10,
-    padding: "8px 14px",
-    border: "none",
-    borderRadius: 8,
-    background: "#2c15c5",
-    color: "#fff",
-    cursor: "pointer",
-  }}
->
-  Delete
+  className="event-btn event-delete-btn"
+  style={{ marginTop: 10 }}
+>  Delete
 </button>
 
 
@@ -496,6 +475,42 @@ const handleUpdateEvent = async () => {
           50% { transform: translate(40px, -30px) scale(1.1); }
           100% { transform: translate(-30px, 40px) scale(1.05); }
         }
+
+        .event-btn {
+  padding: 10px 14px;
+
+  border: none;
+
+  border-radius: 8px;
+
+  cursor: pointer;
+
+  font-weight: bold;
+
+  color: #fff;
+
+  transition:
+    transform 0.25s ease,
+    opacity 0.25s ease;
+}
+
+.event-btn:hover {
+  transform: translateY(-2px);
+
+  opacity: 0.92;
+}
+
+.event-edit-btn {
+  background: #2563eb;
+}
+
+.event-delete-btn {
+  background: #2c15c5;
+}
+
+.event-create-btn {
+  background: ${CRIMSON};
+}
 
         /* Responsive Adjustments */
         @media (max-width: 768px) {

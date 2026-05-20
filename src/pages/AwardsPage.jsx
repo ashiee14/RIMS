@@ -156,8 +156,9 @@ const handleUpdateAward = async (id) => {
         ) : awards.length === 0 ? (
           <p>No awards found.</p>
         ) : (
-          awards.map((award) => (
-            <div key={award.id} className="aurora-card">
+  <div className="awards-grid">
+    {awards.map((award) => (
+      <div key={award.id} className="aurora-card">
               {editingId === award.id ? (
               <input
                 value={editForm.title}
@@ -281,38 +282,165 @@ const handleUpdateAward = async (id) => {
                     alignContent: "right",
                   }}
                 >
-                  Delete Award
+                  Delete
                 </button>
             </div>
-          ))
-        )}
+                    ))}
+      </div>
+)}
       </div>
 
       <style>{`
-        .aurora-page {
-          position: relative;
-          min-height: 100vh;
-          overflow: hidden;
-        }
+  .aurora-page {
+    position: relative;
+    min-height: 100vh;
+    width: 100%;
+    overflow: hidden;
+  }
 
-        .aurora-content {
-          position: relative;
-          z-index: 1;
-          max-width: 1000px;
-          margin: 0 auto;
-          padding: 28px;
-          color: #fff;
-        }
+  .aurora-content {
+    position: relative;
+    z-index: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: clamp(16px, 3vw, 28px);
+    color: #ffffff;
+  }
 
-        .aurora-card {
-          background: rgba(255,255,255,0.12);
-          backdrop-filter: blur(12px);
-          border: 1px solid rgba(255,255,255,0.2);
-          border-radius: 12px;
-          padding: 16px;
-          margin-top: 12px;
-        }
-      `}</style>
+  .awards-grid {
+    display: grid;
+    grid-template-columns: repeat(
+      auto-fit,
+      minmax(260px, 1fr)
+    );
+    gap: 20px;
+    margin-top: 20px;
+  }
+
+  .aurora-card {
+    background: rgba(255, 255, 255, 0.12);
+
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+
+    border: 1px solid rgba(255, 255, 255, 0.2);
+
+    border-radius: 12px;
+
+    padding: 20px;
+
+    color: #ffffff;
+
+    transition:
+      transform 0.3s ease,
+      box-shadow 0.3s ease;
+  }
+
+  .aurora-card:hover {
+    transform: translateY(-5px);
+
+    box-shadow:
+      0 8px 20px
+      rgba(0, 0, 0, 0.25);
+  }
+
+  .aurora-card h3 {
+    margin-bottom: 12px;
+    font-size: 20px;
+  }
+
+  .aurora-card p {
+    margin: 8px 0;
+    color: rgba(255,255,255,0.92);
+  }
+
+  .aurora-card input {
+    width: 100%;
+
+    margin-top: 10px;
+
+    padding: 12px;
+
+    border-radius: 8px;
+
+    border: none;
+
+    outline: none;
+
+    background: rgba(255,255,255,0.92);
+
+    color: #111;
+  }
+
+  .aurora-card input::placeholder {
+    color: #666;
+  }
+
+  .aurora-card button {
+    transition: 0.25s ease;
+    font-weight: bold;
+  }
+
+  .aurora-card button:hover {
+    transform: translateY(-2px);
+    opacity: 0.92;
+  }
+
+  /* Aurora Background Safety */
+  .aurora-container {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .aurora-layer {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    animation:
+      auroraMove 18s infinite
+      alternate ease-in-out;
+  }
+
+  .aurora-layer-1 {
+    animation-delay: 0s;
+  }
+
+  .aurora-layer-2 {
+    animation-delay: 4s;
+  }
+
+  .aurora-layer-3 {
+    animation-delay: 8s;
+  }
+
+  @keyframes auroraMove {
+    0% {
+      transform:
+        translate(0, 0)
+        scale(1);
+    }
+
+    50% {
+      transform:
+        translate(40px, -30px)
+        scale(1.1);
+    }
+
+    100% {
+      transform:
+        translate(-30px, 40px)
+        scale(1.05);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .aurora-content {
+      text-align: center;
+    }
+  }
+`}</style>
     </div>
   );
 };
