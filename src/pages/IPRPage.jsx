@@ -25,20 +25,35 @@ const IPRPage = () => {
   useEffect(() => {
   const loadIPRs = async () => {
     try {
-      const data = await fetchIPRs();
+      setLoading(true);
 
-      console.log("FULL IPR RESPONSE:", data);
+      let allIPRs = [];
+      let nextUrl = "https://rims-api.prerna.sh/api/ipr/";
 
-      const iprArray =
-      data.results ||
-      data.data ||
-      data.iprs ||
-      data.items ||
-      (Array.isArray(data) ? data : []);
+      while (nextUrl) {
+  const response = await fetch(nextUrl, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+    },
+  });
 
-    console.log("FINAL IPR ARRAY:", iprArray);
+  const data = await response.json();
 
-      setIprs(iprArray);
+  console.log("PAGE DATA:", data);
+
+  allIPRs = [...allIPRs, ...data.results];
+
+  // Force HTTPS
+  nextUrl = data.next
+    ? data.next.replace("http://", "https://")
+    : null;
+}
+
+      const sortedIPRs = allIPRs.sort(
+        (a, b) => b.id - a.id
+      );
+
+      setIprs(sortedIPRs);
 
     } catch (error) {
       console.error("Error fetching IPRs:", error);

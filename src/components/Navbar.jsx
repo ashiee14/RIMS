@@ -200,8 +200,6 @@ export default function Navbar() {
   { label: "Publications", path: "/publications" },
   { label: "Awards", path: "/awards" },
   { label: "IPR", path: "/ipr" },
-  { label: "Papers", path: "/papers" },
-  { label: "Posters", path: "/posters" },
   { label: "Books/Chapters", path: "/books-chapters" },
   { label: "Research Projects", path: "/research" },
   { label: "Events", path: "/events" },

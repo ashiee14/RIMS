@@ -468,4 +468,28 @@ export const deleteIPR = async (id) => {
   return res.data;
 };  
 
+
+/* ────────────────────────────────────────────────────────────────
+   Events Extra API
+──────────────────────────────────────────────────────────────── */
+
+// GET single event
+export const fetchEventById = async (id) => {
+  const res = await API.get(`/events/${id}/`);
+  return res.data;
+};
+
+// PARTICIPATE in event
+export const participateInEvent = async (id) => {
+  const res = await API.post(`/events/${id}/participate/`);
+  return res.data;
+};
+
+// LEAVE event
+export const leaveEvent = async (id) => {
+  const res = await API.delete(`/events/${id}/participate/`);
+  return res.data;
+};
+
+
 export default API;

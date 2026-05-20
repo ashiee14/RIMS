@@ -11,8 +11,6 @@
   import PublicationsPage from "./pages/PublicationsPage";
   import AwardsPage from "./pages/AwardsPage";
   import IPRPage from "./pages/IPRPage";
-  import PapersPage from "./pages/PapersPage";
-  import PostersPage from "./pages/PostersPage";
   import BooksChaptersPage from "./pages/BooksChaptersPage";
   import EventsPage from "./pages/EventsPage";
   import ResearchPage from "./pages/ResearchPage";
@@ -46,8 +44,6 @@
           <Route path="/publications" element={<PublicationsPage />} key={location.key} />
           <Route path="/awards" element={<AwardsPage />} key={location.key} />
           <Route path="/ipr" element={<IPRPage />} key={location.key} />
-          <Route path="/papers" element={<PapersPage />} key={location.key} />
-          <Route path="/posters" element={<PostersPage />} key={location.key} />
           <Route path="/books-chapters" element={<BooksChaptersPage />} key={location.key} />
           <Route path="/events" element={<EventsPage />} key={location.key} />
           <Route path="/research" element={<ResearchPage />} key={location.key} />
