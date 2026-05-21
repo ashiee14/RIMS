@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Aurora from "../components/Aurora";
 import { COLORS } from "../styles/theme";
+import { useNavigate } from "react-router-dom";
 
 const {
   crimson: CRIMSON,
@@ -10,13 +11,16 @@ const {
 const AwardsPage = () => {
   const [awards, setAwards] = useState([]);
   const [loading, setLoading] = useState(true);
-
   const [editingId, setEditingId] = useState(null);
-const [editForm, setEditForm] = useState({
-  title: "",
-  awarding_agency: "",
-  award_date: "",
-});
+
+  const navigate = useNavigate();
+  
+  const [editForm, setEditForm] = useState({
+    title: "",
+    awarding_agency: "",
+    award_date: "",
+    recipient: "",
+  });
 
   useEffect(() => {
     const root = document.getElementById("root");
@@ -60,6 +64,7 @@ const handleEditClick = (award) => {
     title: award.title,
     awarding_agency: award.awarding_agency,
     award_date: award.award_date,
+    recipient: award.recipient?.full_name || "",
   });
 };
 
@@ -151,39 +156,41 @@ const handleUpdateAward = async (id) => {
           Recognitions and achievements received.
         </p>
 
+        <button
+          onClick={() => navigate("/add-awards")}
+          className="action-btn save-btn"
+          style={{ marginBottom: 24 }}
+        >
+          Add Award
+        </button>
+
         {loading ? (
           <p>Loading awards...</p>
         ) : awards.length === 0 ? (
           <p>No awards found.</p>
         ) : (
-  <div className="awards-grid">
-    {awards.map((award) => (
-      <div key={award.id} className="aurora-card">
-              {editingId === award.id ? (
-              <input
-                value={editForm.title}
-                onChange={(e) =>
-                  setEditForm({
-                    ...editForm,
-                    title: e.target.value,
-                  })
-                }
-                style={{
-                  width: "100%",
-                  padding: "8px",
-                  marginBottom: "10px",
-                  borderRadius: "6px",
-                  border: "1px solid #ccc",
-                }}
-              />
-            ) : (
-              <h3>{award.title}</h3>
-            )}
+          <div className="awards-grid">
+            {awards.map((award) => (
+              <div key={award.id} className="award-card">
 
-              <p>
-                <strong>Awarding Agency:</strong>{" "}
                 {editingId === award.id ? (
+                  <>
                     <input
+                      type="text"
+                      placeholder="Award Title"
+                      value={editForm.title}
+                      onChange={(e) =>
+                        setEditForm({
+                          ...editForm,
+                          title: e.target.value,
+                        })
+                      }
+                      className="edit-input"
+                    />
+
+                    <input
+                      type="text"
+                      placeholder="Awarding Agency"
                       value={editForm.awarding_agency}
                       onChange={(e) =>
                         setEditForm({
@@ -191,105 +198,101 @@ const handleUpdateAward = async (id) => {
                           awarding_agency: e.target.value,
                         })
                       }
-                      style={{
-                        padding: "6px",
-                        borderRadius: "6px",
-                        border: "1px solid #ccc",
-                        marginLeft: "6px",
-                      }}
+                      className="edit-input"
                     />
-                  ) : (
-                    award.awarding_agency
-                  )}
-              </p>
 
-              <p>
-                <strong>Award Date:</strong>{" "}
-                {editingId === award.id ? (
-                  <input
-                    type="date"
-                    value={editForm.award_date}
-                    onChange={(e) =>
-                      setEditForm({
-                        ...editForm,
-                        award_date: e.target.value,
-                      })
-                    }
-                    style={{
-                      padding: "6px",
-                      borderRadius: "6px",
-                      border: "1px solid #ccc",
-                      marginLeft: "6px",
-                    }}
-                  />
+                    <input
+                      type="date"
+                      value={editForm.award_date}
+                      onChange={(e) =>
+                        setEditForm({
+                          ...editForm,
+                          award_date: e.target.value,
+                        })
+                      }
+                      className="edit-input"
+                    />
+
+                    <input
+                      type="text"
+                      placeholder="Recipient"
+                      value={editForm.recipient}
+                      onChange={(e) =>
+                        setEditForm({
+                          ...editForm,
+                          recipient: e.target.value,
+                        })
+                      }
+                      className="edit-input"
+                    />
+
+                    <div className="btn-row">
+                      <button
+                        onClick={() =>
+                          handleUpdateAward(award.id)
+                        }
+                        className="action-btn edit-btn"
+                      >
+                        Save
+                      </button>
+
+                      <button
+                        onClick={() =>
+                          setEditingId(null)
+                        }
+                        className="action-btn cancel-btn"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </>
                 ) : (
-                  award.award_date
+                  <>
+                    <h3>{award.title}</h3>
+
+                    <p>
+                      <strong>Awarding Agency:</strong>{" "}
+                      {award.awarding_agency}
+                    </p>
+
+                    <p>
+                      <strong>Award Date:</strong>{" "}
+                      {award.award_date}
+                    </p>
+
+                    {award.recipient && (
+                      <p>
+                        <strong>Recipient:</strong>{" "}
+                        {award.recipient.full_name}
+                      </p>
+                    )}
+
+                    <div className="btn-row">
+                      <button
+                        onClick={() =>
+                          handleEditClick(award)
+                        }
+                        className="action-btn edit-btn"
+                      >
+                        Edit
+                      </button>
+
+                      <button
+                        onClick={() =>
+                          handleDeleteAward(award.id)
+                        }
+                        className="action-btn delete-btn"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </>
                 )}
-              </p>
 
-              {award.recipient && (
-                <p>
-                  <strong>Recipient:</strong>{" "}
-                  {award.recipient.full_name}
-                </p>
-              )}
-
-
-              {editingId === award.id ? (
-                <button
-                  onClick={() => handleUpdateAward(award.id)}
-                  style={{
-                    marginTop: 12,
-                    marginRight: 10,
-                    background: "#1890ff",
-                    color: "#fff",
-                    border: "none",
-                    padding: "8px 14px",
-                    borderRadius: "8px",
-                    cursor: "pointer",
-                  }}
-                >
-                  Save
-                </button>
-              ) : (
-                <button
-                  onClick={() => handleEditClick(award)}
-                  style={{
-                    marginTop: 12,
-                    marginRight: 10,
-                    background: "#1d65e1",
-                    color: "#fff",
-                    border: "none",
-                    padding: "8px 14px",
-                    borderRadius: "8px",
-                    cursor: "pointer",
-                  }}
-                >
-                  Edit
-                </button>
-              )}
-
-              <button
-                  onClick={() => handleDeleteAward(award.id)}
-                  style={{
-                    marginTop: 12,
-                    background: "#261ce9",
-                    color: "#fff",
-                    border: "none",
-                    padding: "8px 14px",
-                    borderRadius: "8px",
-                    cursor: "pointer",
-                    alignContent: "right",
-                  }}
-                >
-                  Delete
-                </button>
-            </div>
-                    ))}
-      </div>
-)}
-      </div>
-
+              </div>
+            ))}
+          </div>
+        )}
       <style>{`
   .aurora-page {
     position: relative;
@@ -317,74 +320,137 @@ const handleUpdateAward = async (id) => {
     margin-top: 20px;
   }
 
-  .aurora-card {
-    background: rgba(255, 255, 255, 0.12);
 
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+.award-card {
+  background: rgba(255, 255, 255, 0.12);
 
-    border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 
-    border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
 
-    padding: 20px;
+  border-radius: 12px;
 
-    color: #ffffff;
+  padding: 20px;
 
-    transition:
-      transform 0.3s ease,
-      box-shadow 0.3s ease;
-  }
+  color: #ffffff;
 
-  .aurora-card:hover {
-    transform: translateY(-5px);
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+}
 
-    box-shadow:
-      0 8px 20px
-      rgba(0, 0, 0, 0.25);
-  }
+.award-card:hover {
+  transform: translateY(-5px);
 
-  .aurora-card h3 {
-    margin-bottom: 12px;
-    font-size: 20px;
-  }
+  box-shadow:
+    0 8px 20px
+    rgba(0, 0, 0, 0.25);
+}
 
-  .aurora-card p {
-    margin: 8px 0;
-    color: rgba(255,255,255,0.92);
-  }
+.award-card h3 {
+  margin-bottom: 12px;
+  font-size: 20px;
+}
 
-  .aurora-card input {
-    width: 100%;
+.award-card p {
+  margin: 8px 0;
+  color: rgba(255,255,255,0.92);
+}
 
-    margin-top: 10px;
+.form-card {
+  background: rgba(255, 255, 255, 0.12);
 
-    padding: 12px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 
-    border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.2);
 
-    border: none;
+  border-radius: 12px;
 
-    outline: none;
+  padding: 20px;
 
-    background: rgba(255,255,255,0.92);
+  margin-top: 20px;
+  margin-bottom: 24px;
+}
 
-    color: #111;
-  }
+.form-card input {
+  width: 100%;
 
-  .aurora-card input::placeholder {
-    color: #666;
-  }
+  padding: 12px;
 
-  .aurora-card button {
-    transition: 0.25s ease;
-    font-weight: bold;
-  }
+  margin-top: 10px;
 
-  .aurora-card button:hover {
-    transform: translateY(-2px);
-    opacity: 0.92;
-  }
+  border-radius: 8px;
+
+  border: none;
+
+  outline: none;
+
+  background: rgba(255,255,255,0.92);
+
+  color: #111;
+}
+
+.action-btn {
+  margin-top: 12px;
+
+  padding: 10px 18px;
+
+  border: none;
+
+  border-radius: 8px;
+
+  color: #fff;
+
+  cursor: pointer;
+
+  font-weight: bold;
+
+  transition: 0.25s ease;
+}
+
+.action-btn:hover {
+  transform: translateY(-2px);
+  opacity: 0.92;
+}
+
+.save-btn {
+  background: ${CRIMSON};
+}
+
+.edit-btn {
+  background: #2563eb;
+}
+
+.delete-btn {
+  background: #2f27d7;
+}
+
+.cancel-btn {
+  background: #555;
+}
+
+.btn-row {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+
+.edit-input {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  border-radius: 8px;
+  border: none;
+  outline: none;
+  background: rgba(255,255,255,0.92);
+  color: #111;
+}
+
 
   /* Aurora Background Safety */
   .aurora-container {
@@ -442,6 +508,7 @@ const handleUpdateAward = async (id) => {
   }
 `}</style>
     </div>
+  </div>
   );
 };
 

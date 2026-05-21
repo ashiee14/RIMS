@@ -17,6 +17,8 @@
   
   import AddAwardsPage from "./pages/AddAwardsPage";
   import AddIPRPage from "./pages/AddIPRPage";
+  import AddEventPage from "./pages/AddEventPage";
+  import AddBookPage from "./pages/AddBookPage";
   import AddPublicationsPage from "./pages/AddPublicationsPage";
   import AddResearchProjectPage from "./pages/AddResearchProjectPage";
 
@@ -50,6 +52,8 @@
 
           <Route path="/add-awards" element={<AddAwardsPage />} key={location.key} />
           <Route path="/add-ipr" element={<AddIPRPage />} key={location.key} />
+          <Route path="/add-event" element={<AddEventPage />} key={location.key} />
+          <Route path="/add-book" element={<AddBookPage />} key={location.key} />
           <Route path="/add-publication" element={<AddPublicationsPage />} key={location.key} />
           <Route path="/add-research-project" element={<AddResearchProjectPage />} key={location.key} />
           

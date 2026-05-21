@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import Aurora from "../components/Aurora";
 import { COLORS } from "../styles/theme";
 
 const {
@@ -12,8 +14,31 @@ const {
 } = COLORS;
 
 const AddAwardsPage = ({ onNav }) => {
-  const [fields, setFields] = useState({ faculty: "Enter name", dept: "Enter department", title: "Enter Title", date: "2023-10-01", agency: "Not specified", location: "Not specified", level: "", category: "", description: "" });
+  const navigate = useNavigate();
+
+  const [fields, setFields] = useState({
+    faculty: "",
+    dept: "",
+    title: "",
+    date: "",
+    agency: "",
+    location: "",
+    level: "",
+    category: "",
+    description: "",
+  });
+    
   const update = (k, v) => setFields(p => ({ ...p, [k]: v }));
+  
+  useEffect(() => {
+    const root = document.getElementById("root");
+
+    root.classList.add("aurora-root");
+
+    return () =>
+      root.classList.remove("aurora-root");
+  }, []);
+  
   const handleSaveAward = async () => {
   console.log("BUTTON CLICKED");
 
@@ -45,7 +70,9 @@ const AddAwardsPage = ({ onNav }) => {
 
     if (response.ok) {
       alert("Award created successfully!");
-    } else {
+      navigate("/awards");
+    } 
+    else {
       alert("Failed to create award");
     }
 
@@ -57,76 +84,318 @@ const AddAwardsPage = ({ onNav }) => {
   const labelStyle = { fontSize: 13, fontWeight: 500, marginBottom: 6, display: "block", color: TEXT };
   const reqStar = <span style={{ color: CRIMSON }}>*</span>;
   const inputStyle = { width: "100%", padding: "10px 12px", border: `1px solid ${BORDER}`, borderRadius: 8, fontSize: 13, color: TEXT, background: "#fff", outline: "none" };
+  
   return (
-    <div style={{ maxWidth: 900, margin: "0 auto", padding: "32px 24px" }}>
-      <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 30, fontWeight: 400, color: CRIMSON, marginBottom: 6 }}>Add Awards</h1>
-      <p style={{ color: TEXT_MUTED, marginBottom: 28 }}>Upload an image for quick extraction, or enter manually.</p>
-      <div style={{ background: CARD_BG, border: `1px solid ${BORDER}`, borderRadius: 14, padding: "28px", marginBottom: 20, textAlign: "center" }}>
-        <h3 style={{ fontWeight: 600, marginBottom: 16 }}>Upload Awards Image</h3>
-        <div style={{ width: 200, height: 120, margin: "0 auto 16px", background: LIGHT_BG, borderRadius: 10, border: `2px dashed ${BORDER}`, display: "flex", alignItems: "center", justifyContent: "center", position: "relative", cursor: "pointer" }}>
-          <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 32, color: TEXT_HINT }}>📜</div>
-            <div style={{ fontSize: 11, color: TEXT_HINT }}>Certificate preview</div>
-          </div>
-          <div style={{ position: "absolute", top: -10, right: -10, width: 22, height: 22, background: "#fff", border: `1px solid ${BORDER}`, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: "#e55", fontSize: 14, cursor: "pointer" }}>✕</div>
-        </div>
-        <button style={{ background: CRIMSON, color: "#fff", border: "none", padding: "10px 24px", borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 7 }}>
-          ↑ Upload Image
-        </button>
-      </div>
-      <div style={{ textAlign: "center", marginBottom: 20 }}>
-        <button style={{ background: CRIMSON, color: "#fff", border: "none", padding: "10px 24px", borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: "pointer" }}>+ Edit</button>
-      </div>
-      <div style={{ background: CARD_BG, border: `1px solid ${BORDER}`, borderRadius: 14, padding: "28px" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "18px 24px" }}>
-          {[
-            { label: "Name of the Faculty", key: "faculty", req: true },
-            { label: "Department", key: "dept", req: true },
-            { label: "Title Of Award", key: "title", req: true },
-            { label: "Award Date", key: "date", req: true, type: "date" },
-            { label: "Awarding Agency", key: "agency", req: true },
-            { label: "Location", key: "location", req: true },
-            { label: "Level", key: "level", req: false, type: "select", opts: ["International", "National", "State", "Institutional"] },
-            { label: "Category", key: "category", req: false, type: "select", opts: ["Best Paper", "Best Researcher", "Excellence Award", "Other"] },
-          ].map(({ label, key, req, type, opts }) => (
-            <div key={key}>
-              <label style={labelStyle}>{label} {req && reqStar}</label>
-              {type === "select" ? (
-                <select value={fields[key]} onChange={e => update(key, e.target.value)} style={inputStyle}>
-                  <option value="">Select...</option>
-                  {opts.map(o => <option key={o}>{o}</option>)}
-                </select>
-              ) : (
-                <input type={type || "text"} value={fields[key]} onChange={e => update(key, e.target.value)} style={inputStyle} placeholder={fields[key] || `Enter ${label}`} />
-              )}
-            </div>
-          ))}
-          <div style={{ gridColumn: "1 / -1" }}>
-            <label style={labelStyle}>Description</label>
-            <textarea value={fields.description} onChange={e => update("description", e.target.value)} style={{ ...inputStyle, height: 90, resize: "vertical" }} placeholder="Enter description..." />
-          </div>
-        </div>
-        <div style={{ display: "flex", gap: 12, marginTop: 24, justifyContent: "flex-end" }}>
-          <button style={{ padding: "10px 24px", border: `1px solid ${BORDER}`, borderRadius: 8, background: "#fff", fontSize: 13, cursor: "pointer" }}>Cancel</button>
-            <button
-              onClick={handleSaveAward}
+  <div className="aurora-page">
+    <Aurora
+      colorStops={[
+        "#8061fc",
+        "#2500b7",
+        "#000000",
+        "#2200a8",
+      ]}
+      amplitude={1}
+      blend={0.5}
+    />
+
+    <div className="aurora-content">
+      <h1 style={{ color: CRIMSON }}>
+        Add Award
+      </h1>
+
+      <p style={{ color: TEXT_MUTED }}>
+        Upload an image or manually create
+        a new award entry.
+      </p>
+
+      <div className="upload-card">
+        <h3 style={{ marginBottom: 16 }}>
+          Upload Award Image
+        </h3>
+
+        <div className="upload-preview">
+          <div>
+            <div
               style={{
-                padding: "10px 24px",
-                background: CRIMSON,
-                color: "#fff",
-                border: "none",
-                borderRadius: 8,
-                fontSize: 13,
-                fontWeight: 500,
-                cursor: "pointer"
+                fontSize: 34,
+                marginBottom: 6,
               }}
             >
-              Save Award
-            </button>        
+              📜
+            </div>
+
+            <div
+              style={{
+                fontSize: 12,
+                opacity: 0.8,
+              }}
+            >
+              Certificate Preview
+            </div>
           </div>
+        </div>
+
+        <button className="action-btn save-btn">
+          Upload Image
+        </button>
       </div>
+
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSaveAward();
+        }}
+        className="form-card"
+      >
+        <input
+          type="text"
+          placeholder="Faculty Name"
+          value={fields.faculty}
+          onChange={(e) =>
+            update("faculty", e.target.value)
+          }
+        />
+
+        <input
+          type="text"
+          placeholder="Department"
+          value={fields.dept}
+          onChange={(e) =>
+            update("dept", e.target.value)
+          }
+        />
+
+        <input
+          type="text"
+          placeholder="Award Title"
+          value={fields.title}
+          onChange={(e) =>
+            update("title", e.target.value)
+          }
+        />
+
+        <input
+          type="date"
+          value={fields.date}
+          onChange={(e) =>
+            update("date", e.target.value)
+          }
+        />
+
+        <input
+          type="text"
+          placeholder="Awarding Agency"
+          value={fields.agency}
+          onChange={(e) =>
+            update("agency", e.target.value)
+          }
+        />
+
+        <input
+          type="text"
+          placeholder="Location"
+          value={fields.location}
+          onChange={(e) =>
+            update("location", e.target.value)
+          }
+        />
+
+        <select
+          value={fields.level}
+          onChange={(e) =>
+            update("level", e.target.value)
+          }
+        >
+          <option value="">
+            Select Level
+          </option>
+
+          <option>
+            International
+          </option>
+
+          <option>National</option>
+
+          <option>State</option>
+
+          <option>Institutional</option>
+        </select>
+
+        <select
+          value={fields.category}
+          onChange={(e) =>
+            update(
+              "category",
+              e.target.value
+            )
+          }
+        >
+          <option value="">
+            Select Category
+          </option>
+
+          <option>Best Paper</option>
+
+          <option>
+            Best Researcher
+          </option>
+
+          <option>
+            Excellence Award
+          </option>
+
+          <option>Other</option>
+        </select>
+
+        <textarea
+          placeholder="Description"
+          value={fields.description}
+          onChange={(e) =>
+            update(
+              "description",
+              e.target.value
+            )
+          }
+        />
+
+        <div className="btn-row">
+          <button
+            type="button"
+            className="action-btn delete-btn"
+            onClick={() =>
+              navigate("/awards")
+            }
+          >
+            Cancel
+          </button>
+
+          <button
+            type="submit"
+            className="action-btn save-btn"
+          >
+            Save Award
+          </button>
+        </div>
+      </form>
     </div>
-  );
+
+    <style>{`
+      .aurora-page {
+        position: relative;
+        min-height: 100vh;
+        overflow: hidden;
+      }
+
+      .aurora-content {
+        position: relative;
+        z-index: 1;
+        max-width: 700px;
+        margin: auto;
+        padding: 30px;
+        color: white;
+      }
+
+      .upload-card {
+        background: rgba(255,255,255,0.12);
+
+        backdrop-filter: blur(12px);
+
+        border-radius: 12px;
+
+        padding: 24px;
+
+        margin-bottom: 24px;
+
+        text-align: center;
+      }
+
+      .upload-preview {
+        width: 220px;
+        height: 130px;
+
+        margin: 0 auto 18px;
+
+        border-radius: 12px;
+
+        border: 2px dashed
+          rgba(255,255,255,0.4);
+
+        display: flex;
+
+        align-items: center;
+        justify-content: center;
+
+        background:
+          rgba(255,255,255,0.08);
+      }
+
+      .form-card {
+        background: rgba(255,255,255,0.12);
+
+        backdrop-filter: blur(12px);
+
+        border-radius: 12px;
+
+        padding: 24px;
+
+        display: flex;
+
+        flex-direction: column;
+
+        gap: 14px;
+      }
+
+      .form-card input,
+      .form-card select,
+      .form-card textarea {
+        padding: 12px;
+
+        border-radius: 8px;
+
+        border: none;
+
+        outline: none;
+      }
+
+      .form-card textarea {
+        min-height: 100px;
+      }
+
+      .action-btn {
+        padding: 12px 18px;
+
+        border: none;
+
+        border-radius: 8px;
+
+        color: white;
+
+        font-weight: bold;
+
+        cursor: pointer;
+      }
+
+      .save-btn {
+        background: ${CRIMSON};
+      }
+
+      .delete-btn {
+        background: #444;
+      }
+
+      .btn-row {
+        display: flex;
+
+        justify-content: flex-end;
+
+        gap: 10px;
+
+        margin-top: 10px;
+      }
+    `}</style>
+  </div>
+);
 };
+
 
 export default AddAwardsPage;

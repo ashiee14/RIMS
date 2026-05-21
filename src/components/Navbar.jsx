@@ -209,6 +209,8 @@ export default function Navbar() {
     { label: "Add Publication", path: "/add-publication" },
     { label: "Add IPR", path: "/add-ipr" },
     { label: "Add Award", path: "/add-awards" },
+    { label: "Add Event", path: "/add-event" },
+    { label: "Add Book/Chapter", path: "/add-book" },
     { label: "Add Research Project", path: "/add-research-project" },
   ];
 

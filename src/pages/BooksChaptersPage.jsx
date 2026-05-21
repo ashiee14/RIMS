@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Aurora from "../components/Aurora";
 import { COLORS } from "../styles/theme";
+import { useNavigate } from "react-router-dom";
 
 const {
   crimson: CRIMSON,
@@ -22,45 +23,61 @@ const BooksChaptersPage = () => {
   const [loading, setLoading] = useState(true);
   const [editingBookId, setEditingBookId] = useState(null);
 
-  const [fields, setFields] = useState({
-  title: "",
-  publisher: "",
-  isbn: "",
-  year: "",
-  pages: "",
-});
+  const navigate = useNavigate();
 
-const updateField = (key, value) => {
-  setFields((prev) => ({
-    ...prev,
-    [key]: value,
-  }));
-};
+  const [editForm, setEditForm] = useState({
+      title: "",
+      publisher: "",
+      isbn: "",
+      year: "",
+      pages: "",
+    });
   
-  useEffect(() => {
+useEffect(() => {
   const loadBooks = async () => {
     try {
-      const token = localStorage.getItem("access_token");
+      setLoading(true);
 
-      const response = await fetch("/api/books/", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const token =
+        localStorage.getItem("access_token");
 
-      const data = await response.json();
+      let allBooks = [];
 
-      console.log("BOOKS STATUS:", response.status);
-      console.log("BOOKS DATA:", data);
+      let nextUrl = "/api/books/";
 
-      const booksArray = Array.isArray(data)
-        ? data
-        : data.results || [];
+      while (nextUrl) {
+        const response = await fetch(nextUrl, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
-      setBooks(booksArray);
+        const data = await response.json();
+
+        console.log("BOOK PAGE:", data);
+
+        allBooks = [
+          ...allBooks,
+          ...(data.results || []),
+        ];
+
+        nextUrl = data.next
+          ? data.next.replace(
+              "http://",
+              "https://"
+            )
+          : null;
+      }
+
+      const sortedBooks = allBooks.sort(
+        (a, b) => b.id - a.id
+      );
+
+      setBooks(sortedBooks);
 
     } catch (error) {
       console.error("BOOKS ERROR:", error);
+
       setBooks([]);
     } finally {
       setLoading(false);
@@ -71,56 +88,6 @@ const updateField = (key, value) => {
 }, []);
 
 
-const handleSaveBook = async () => {
-  try {
-    console.log("SAVE BOOK CLICKED");
-
-    const token = localStorage.getItem("access_token");
-
-    const payload = {
-      title: fields.title,
-      publisher: fields.publisher,
-      isbn: fields.isbn,
-      year: Number(fields.year),
-      pages: fields.pages ? Number(fields.pages) : null,
-    };
-
-    console.log("BOOK PAYLOAD:", payload);
-
-    const response = await fetch("/api/books/create/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(payload),
-    });
-
-    const data = await response.json();
-
-    console.log("CREATE BOOK STATUS:", response.status);
-    console.log("CREATE BOOK DATA:", data);
-
-    if (response.ok) {
-      alert("Book created successfully!");
-
-      setBooks((prev) => [data, ...prev]);
-
-      setFields({
-        title: "",
-        publisher: "",
-        isbn: "",
-        year: "",
-        pages: "",
-      });
-    } else {
-      alert("Failed to create book");
-    }
-
-  } catch (error) {
-    console.error("CREATE BOOK ERROR:", error);
-  }
-};
 
 const handleDeleteBook = async (id) => {
   try {
@@ -158,7 +125,7 @@ const handleDeleteBook = async (id) => {
 const handleEditBook = (book) => {
   setEditingBookId(book.id);
 
-  setFields({
+  setEditForm({
     title: book.title || "",
     publisher: book.publisher || "",
     isbn: book.isbn || "",
@@ -172,11 +139,13 @@ const handleUpdateBook = async () => {
     const token = localStorage.getItem("access_token");
 
     const payload = {
-      title: fields.title,
-      publisher: fields.publisher,
-      isbn: fields.isbn,
-      year: Number(fields.year),
-      pages: fields.pages ? Number(fields.pages) : null,
+      title: editForm.title,
+      publisher: editForm.publisher,
+      isbn: editForm.isbn,
+      year: Number(editForm.year),
+      pages: editForm.pages
+        ? Number(editForm.pages)
+        : null,
     };
 
     console.log("UPDATING BOOK:", payload);
@@ -209,7 +178,7 @@ const handleUpdateBook = async () => {
 
       setEditingBookId(null);
 
-      setFields({
+      setEditForm({
         title: "",
         publisher: "",
         isbn: "",
@@ -242,304 +211,354 @@ const handleUpdateBook = async () => {
           Published books and book chapters.
         </p>
 
-<div className="form-card">
-  <h3>Add Book</h3>
+        <button
+          onClick={() => navigate("/add-book")}
+          className="action-btn save-btn"
+          style={{ marginBottom: 24 }}
+        >
+          Add Book
+        </button>
 
-  <input
-    type="text"
-    placeholder="Book Title"
-    value={fields.title}
-    onChange={(e) => updateField("title", e.target.value)}
-    style={inputStyle}
-  />
-
-  <input
-    type="text"
-    placeholder="Publisher"
-    value={fields.publisher}
-    onChange={(e) => updateField("publisher", e.target.value)}
-    style={inputStyle}
-  />
-
-  <input
-    type="text"
-    placeholder="ISBN"
-    value={fields.isbn}
-    onChange={(e) => updateField("isbn", e.target.value)}
-    style={inputStyle}
-  />
-
-  <input
-    type="number"
-    placeholder="Year"
-    value={fields.year}
-    onChange={(e) => updateField("year", e.target.value)}
-    style={inputStyle}
-  />
-
-  <input
-    type="number"
-    placeholder="Pages"
-    value={fields.pages}
-    onChange={(e) => updateField("pages", e.target.value)}
-    style={inputStyle}
-  />
-
-<button
-  onClick={
-    editingBookId
-      ? handleUpdateBook
-      : handleSaveBook
-  }
-  className="action-btn save-btn"
->
-
-
-    {editingBookId ? "Update Book" : "Save Book"}
-  </button>
-</div>
         {loading ? (
         <p>Loading books...</p>
       ) : books.length === 0 ? (
         <p>No books found.</p>
       ) : (
         <div className="books-grid">
-  {books.map((book) => (
-    <div
-      key={book.id}
-      className="book-card"
-    >
-            <h3>{book.title}</h3>
-            <p><strong>Publisher:</strong> {book.publisher}</p>
-            <p><strong>ISBN:</strong> {book.isbn || "N/A"}</p>
-            <p><strong>Year:</strong> {book.year}</p>
-            <p><strong>Pages:</strong> {book.pages || "N/A"}</p>
+            {books.map((book) => (
+            <div key={book.id} className="book-card">
 
-            <div className="btn-row">
-  <button
-    onClick={() => handleEditBook(book)}
-    className="action-btn edit-btn"
-  >
-    Edit
-  </button>
+              {editingBookId === book.id ? (
+                <>
+                  <input
+                    type="text"
+                    placeholder="Book Title"
+                    value={editForm.title}
+                    onChange={(e) =>
+                      setEditForm({
+                        ...editForm,
+                        title: e.target.value,
+                      })
+                    }
+                    style={inputStyle}
+                  />
 
-  <button
-    onClick={() => handleDeleteBook(book.id)}
-    className="action-btn delete-btn"
-  >
-    Delete
-  </button>
-</div>
-          </div>
+                  <input
+                    type="text"
+                    placeholder="Publisher"
+                    value={editForm.publisher}
+                    onChange={(e) =>
+                      setEditForm({
+                        ...editForm,
+                        publisher: e.target.value,
+                      })
+                    }
+                    style={inputStyle}
+                  />
+
+                  <input
+                    type="text"
+                    placeholder="ISBN"
+                    value={editForm.isbn}
+                    onChange={(e) =>
+                      setEditForm({
+                        ...editForm,
+                        isbn: e.target.value,
+                      })
+                    }
+                    style={inputStyle}
+                  />
+
+                  <input
+                    type="number"
+                    placeholder="Year"
+                    value={editForm.year}
+                    onChange={(e) =>
+                      setEditForm({
+                        ...editForm,
+                        year: e.target.value,
+                      })
+                    }
+                    style={inputStyle}
+                  />
+
+                  <input
+                    type="number"
+                    placeholder="Pages"
+                    value={editForm.pages}
+                    onChange={(e) =>
+                      setEditForm({
+                        ...editForm,
+                        pages: e.target.value,
+                      })
+                    }
+                    style={inputStyle}
+                  />
+
+                  <div className="btn-row">
+                    <button
+                      onClick={handleUpdateBook}
+                      className="action-btn edit-btn"
+                    >
+                      Save
+                    </button>
+
+                    <button
+                      onClick={() => setEditingBookId(null)}
+                      className="action-btn delete-btn"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <h3>{book.title}</h3>
+
+                  <p>
+                    <strong>Publisher:</strong> {book.publisher}
+                  </p>
+
+                  <p>
+                    <strong>ISBN:</strong> {book.isbn || "N/A"}
+                  </p>
+
+                  <p>
+                    <strong>Year:</strong> {book.year}
+                  </p>
+
+                  <p>
+                    <strong>Pages:</strong> {book.pages || "N/A"}
+                  </p>
+
+                  <div className="btn-row">
+                    <button
+                      onClick={() => handleEditBook(book)}
+                      className="action-btn edit-btn"
+                    >
+                      Edit
+                    </button>
+
+                    <button
+                      onClick={() => handleDeleteBook(book.id)}
+                      className="action-btn delete-btn"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </>
+              )}
+
+            </div>
           ))}
-</div>
-)}
-      </div>
+        </div>
+      )}
+    </div>
 
-      <style>{`
-  .aurora-page {
-    position: relative;
-    min-height: 100vh;
-    width: 100%;
-    overflow: hidden;
-  }
+    <style>{`
+      .aurora-page {
+        position: relative;
+        min-height: 100vh;
+        width: 100%;
+        overflow: hidden;
+      }
 
-  .aurora-content {
-    position: relative;
-    z-index: 1;
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: clamp(16px, 3vw, 28px);
-    color: #ffffff;
-  }
+      .aurora-content {
+        position: relative;
+        z-index: 1;
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: clamp(16px, 3vw, 28px);
+        color: #ffffff;
+      }
 
-  .books-grid {
-    display: grid;
-    grid-template-columns: repeat(
-      auto-fit,
-      minmax(260px, 1fr)
-    );
-    gap: 20px;
-  }
+      .books-grid {
+        display: grid;
+        grid-template-columns: repeat(
+          auto-fit,
+          minmax(260px, 1fr)
+        );
+        gap: 20px;
+      }
 
-  .book-card {
-    background: rgba(255, 255, 255, 0.12);
+      .book-card {
+        background: rgba(255, 255, 255, 0.12);
 
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
 
-    border: 1px solid rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.2);
 
-    border-radius: 12px;
+        border-radius: 12px;
 
-    padding: 20px;
+        padding: 20px;
 
-    color: #ffffff;
+        color: #ffffff;
 
-    transition:
-      transform 0.3s ease,
-      box-shadow 0.3s ease;
-  }
+        transition:
+          transform 0.3s ease,
+          box-shadow 0.3s ease;
+      }
 
-  .book-card:hover {
-    transform: translateY(-5px);
+      .book-card:hover {
+        transform: translateY(-5px);
 
-    box-shadow:
-      0 8px 20px
-      rgba(0, 0, 0, 0.25);
-  }
+        box-shadow:
+          0 8px 20px
+          rgba(0, 0, 0, 0.25);
+      }
 
-  .book-card h3 {
-    margin-bottom: 12px;
-    font-size: 20px;
-  }
+      .book-card h3 {
+        margin-bottom: 12px;
+        font-size: 20px;
+      }
 
-  .book-card p {
-    margin: 8px 0;
-    color: rgba(255,255,255,0.92);
-  }
+      .book-card p {
+        margin: 8px 0;
+        color: rgba(255,255,255,0.92);
+      }
 
-  .form-card {
-    background: rgba(255, 255, 255, 0.12);
+      .form-card {
+        background: rgba(255, 255, 255, 0.12);
 
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
 
-    border: 1px solid rgba(255,255,255,0.2);
+        border: 1px solid rgba(255,255,255,0.2);
 
-    border-radius: 12px;
+        border-radius: 12px;
 
-    padding: 20px;
+        padding: 20px;
 
-    margin-top: 20px;
-    margin-bottom: 24px;
-  }
+        margin-top: 20px;
+        margin-bottom: 24px;
+      }
 
-  .form-card input {
-    width: 100%;
+      .form-card input {
+        width: 100%;
 
-    padding: 12px;
+        padding: 12px;
 
-    margin-top: 10px;
+        margin-top: 10px;
 
-    border-radius: 8px;
+        border-radius: 8px;
 
-    border: none;
+        border: none;
 
-    outline: none;
+        outline: none;
 
-    background: rgba(255,255,255,0.92);
+        background: rgba(255,255,255,0.92);
 
-    color: #111;
-  }
+        color: #111;
+      }
 
-  .form-card input::placeholder {
-    color: #666;
-  }
+      .form-card input::placeholder {
+        color: #666;
+      }
 
-  .action-btn {
-    margin-top: 12px;
+      .action-btn {
+        margin-top: 12px;
 
-    padding: 10px 18px;
+        padding: 10px 18px;
 
-    border: none;
+        border: none;
 
-    border-radius: 8px;
+        border-radius: 8px;
 
-    color: #fff;
+        color: #fff;
 
-    cursor: pointer;
+        cursor: pointer;
 
-    font-weight: bold;
+        font-weight: bold;
 
-    transition: 0.25s ease;
-  }
+        transition: 0.25s ease;
+      }
 
-  .action-btn:hover {
-    transform: translateY(-2px);
-    opacity: 0.92;
-  }
+      .action-btn:hover {
+        transform: translateY(-2px);
+        opacity: 0.92;
+      }
 
-  .save-btn {
-    background: ${CRIMSON};
-  }
+      .save-btn {
+        background: ${CRIMSON};
+      }
 
-  .edit-btn {
-    background: #2563eb;
-    margin-right: 10px;
-  }
+      .edit-btn {
+        background: #2563eb;
+        margin-right: 10px;
+      }
 
-  .delete-btn {
-    background: #2635dc;
-  }
+      .delete-btn {
+        background: #2635dc;
+      }
 
-  .btn-row {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin-top: 16px;
-    flex-wrap: wrap;
-  }
+      .btn-row {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 16px;
+        flex-wrap: wrap;
+      }
 
-  /* Aurora Background Safety */
-  .aurora-container {
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-  }
+      /* Aurora Background Safety */
+      .aurora-container {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+      }
 
-  .aurora-layer {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    animation:
-      auroraMove 18s infinite
-      alternate ease-in-out;
-  }
+      .aurora-layer {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        animation:
+          auroraMove 18s infinite
+          alternate ease-in-out;
+      }
 
-  .aurora-layer-1 {
-    animation-delay: 0s;
-  }
+      .aurora-layer-1 {
+        animation-delay: 0s;
+      }
 
-  .aurora-layer-2 {
-    animation-delay: 4s;
-  }
+      .aurora-layer-2 {
+        animation-delay: 4s;
+      }
 
-  .aurora-layer-3 {
-    animation-delay: 8s;
-  }
+      .aurora-layer-3 {
+        animation-delay: 8s;
+      }
 
-  @keyframes auroraMove {
-    0% {
-      transform:
-        translate(0, 0)
-        scale(1);
-    }
+      @keyframes auroraMove {
+        0% {
+          transform:
+            translate(0, 0)
+            scale(1);
+        }
 
-    50% {
-      transform:
-        translate(40px, -30px)
-        scale(1.1);
-    }
+        50% {
+          transform:
+            translate(40px, -30px)
+            scale(1.1);
+        }
 
-    100% {
-      transform:
-        translate(-30px, 40px)
-        scale(1.05);
-    }
-  }
+        100% {
+          transform:
+            translate(-30px, 40px)
+            scale(1.05);
+        }
+      }
 
-  @media (max-width: 768px) {
-    .aurora-content {
-      text-align: center;
-    }
+      @media (max-width: 768px) {
+        .aurora-content {
+          text-align: center;
+        }
 
-    .btn-row {
-      justify-content: center;
-    }
-  }
-`}</style>
+        .btn-row {
+          justify-content: center;
+        }
+      }
+    `}</style>
 
 
     </div>

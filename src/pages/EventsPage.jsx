@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Aurora from "../components/Aurora";
 import { COLORS, FONT } from "../styles/theme";
+import { useNavigate } from "react-router-dom";
 
 const {
   crimson: CRIMSON,
@@ -21,24 +22,18 @@ const inputStyle = {
 const EventsPage = () => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
-const [editingId, setEditingId] = useState(null);
+  const [editingId, setEditingId] = useState(null);
 
-  const [fields, setFields] = useState({
-  title: "",
-  event_type: "conference",
-  start_date: "",
-  end_date: "",
-  location: "",
-  status: "scheduled",
-});
+  const navigate = useNavigate();
 
-const updateField = (key, value) => {
-  setFields((prev) => ({
-    ...prev,
-    [key]: value,
-  }));
-};
-
+  const [editForm, setEditForm] = useState({
+      title: "",
+      event_type: "conference",
+      start_date: "",
+      end_date: "",
+      location: "",
+      status: "scheduled",
+  });
 
   useEffect(() => {
     const root = document.getElementById("root");
@@ -49,19 +44,40 @@ const updateField = (key, value) => {
   useEffect(() => {
   const loadEvents = async () => {
     try {
+      setLoading(true);
+
       const token = localStorage.getItem("access_token");
 
-      const response = await fetch("/api/events/", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      let allEvents = [];
+      let nextUrl = "/api/events/";
 
-      const data = await response.json();
+      while (nextUrl) {
+        const response = await fetch(nextUrl, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
-      console.log("EVENTS:", data);
+        const data = await response.json();
 
-      setEvents(Array.isArray(data.results) ? data.results : []);
+        console.log("EVENT PAGE DATA:", data);
+
+        allEvents = [
+          ...allEvents,
+          ...(data.results || []),
+        ];
+
+        nextUrl = data.next
+          ? data.next.replace("http://", "https://")
+          : null;
+      }
+
+      const sortedEvents = allEvents.sort(
+        (a, b) => b.id - a.id
+      );
+
+      setEvents(sortedEvents);
+
     } catch (error) {
       console.error("Error fetching events:", error);
       setEvents([]);
@@ -73,56 +89,7 @@ const updateField = (key, value) => {
   loadEvents();
 }, []);
 
-const handleCreateEvent = async () => {
-  try {
-    const token = localStorage.getItem("access_token");
 
-    const payload = {
-      title: fields.title,
-      event_type: fields.event_type,
-      start_date: fields.start_date,
-      end_date: fields.end_date,
-      location: fields.location,
-      status: fields.status,
-    };
-
-    console.log("EVENT PAYLOAD:", payload);
-
-    const response = await fetch("/api/events/create/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(payload),
-    });
-
-    const data = await response.json();
-
-    console.log("CREATE EVENT STATUS:", response.status);
-    console.log("CREATE EVENT DATA:", data);
-
-    if (response.ok) {
-      alert("Event created!");
-
-      setEvents((prev) => [data, ...prev]);
-
-      setFields({
-        title: "",
-        event_type: "conference",
-        start_date: "",
-        end_date: "",
-        location: "",
-        status: "scheduled",
-      });
-    } else {
-      alert("Failed to create event");
-    }
-
-  } catch (error) {
-    console.error("CREATE EVENT ERROR:", error);
-  }
-};
 
 const handleDeleteEvent = async (id) => {
   try {
@@ -161,7 +128,7 @@ const handleDeleteEvent = async (id) => {
 const handleEditClick = (event) => {
   setEditingId(event.id);
 
-  setFields({
+  setEditForm({
     title: event.title || "",
     event_type: event.event_type || "conference",
     start_date: event.start_date || "",
@@ -176,12 +143,12 @@ const handleUpdateEvent = async () => {
     const token = localStorage.getItem("access_token");
 
     const payload = {
-      title: fields.title,
-      event_type: fields.event_type,
-      start_date: fields.start_date,
-      end_date: fields.end_date,
-      location: fields.location,
-      status: fields.status,
+      title: editForm.title,
+      event_type: editForm.event_type,
+      start_date: editForm.start_date,
+      end_date: editForm.end_date,
+      location: editForm.location,
+      status: editForm.status,
     };
 
     console.log("UPDATING EVENT:", payload);
@@ -265,31 +232,46 @@ const handleUpdateEvent = async () => {
           Academic and institutional events.
         </p>
 
-<div
-  style={{
-    background: CARD_BG,
-    border: `1px solid ${BORDER}`,
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 24,
-  }}
->
-  <h3>Create Event</h3>
+        <button
+          onClick={() => navigate("/add-event")}
+          className="event-btn event-create-btn"
+          style={{ marginBottom: 24 }}
+        >
+          Add Event
+        </button>
 
+
+        <div className="events-grid">
+          {loading ? (
+  <p>Loading events...</p>
+) : events.length === 0 ? (
+  <p>No events found.</p>
+) : (
+  events.map((event) => (
+    <div key={event.id} className="event-card">
+
+  {editingId === event.id ? (
+    <>
   <input
     type="text"
     placeholder="Event Title"
-    value={fields.title}
+    value={editForm.title}
     onChange={(e) =>
-      updateField("title", e.target.value)
+      setEditForm({
+        ...editForm,
+        title: e.target.value,
+      })
     }
     style={inputStyle}
   />
 
   <select
-    value={fields.event_type}
+    value={editForm.event_type}
     onChange={(e) =>
-      updateField("event_type", e.target.value)
+      setEditForm({
+        ...editForm,
+        event_type: e.target.value,
+      })
     }
     style={inputStyle}
   >
@@ -302,18 +284,24 @@ const handleUpdateEvent = async () => {
 
   <input
     type="date"
-    value={fields.start_date}
+    value={editForm.start_date}
     onChange={(e) =>
-      updateField("start_date", e.target.value)
+      setEditForm({
+        ...editForm,
+        start_date: e.target.value,
+      })
     }
     style={inputStyle}
   />
 
   <input
     type="date"
-    value={fields.end_date}
+    value={editForm.end_date}
     onChange={(e) =>
-      updateField("end_date", e.target.value)
+      setEditForm({
+        ...editForm,
+        end_date: e.target.value,
+      })
     }
     style={inputStyle}
   />
@@ -321,17 +309,23 @@ const handleUpdateEvent = async () => {
   <input
     type="text"
     placeholder="Location"
-    value={fields.location}
+    value={editForm.location}
     onChange={(e) =>
-      updateField("location", e.target.value)
+      setEditForm({
+        ...editForm,
+        location: e.target.value,
+      })
     }
     style={inputStyle}
   />
 
   <select
-    value={fields.status}
+    value={editForm.status}
     onChange={(e) =>
-      updateField("status", e.target.value)
+      setEditForm({
+        ...editForm,
+        status: e.target.value,
+      })
     }
     style={inputStyle}
   >
@@ -343,29 +337,31 @@ const handleUpdateEvent = async () => {
     <option value="cancelled">Cancelled</option>
   </select>
 
-  <button
-  onClick={
-    editingId
-      ? handleUpdateEvent
-      : handleCreateEvent
-  }
-  className="event-btn event-create-btn"
-  style={{ marginTop: 14 }}
->
+  <div
+    style={{
+      display: "flex",
+      gap: 10,
+      marginTop: 12,
+      flexWrap: "wrap",
+    }}
+  >
+    <button
+      onClick={handleUpdateEvent}
+      className="event-btn event-edit-btn"
+    >
+      Save
+    </button>
 
-  
-  {editingId ? "Update Event" : "Create Event"}
-</button>
-
-</div>
-        <div className="events-grid">
-          {loading ? (
-  <p>Loading events...</p>
-) : events.length === 0 ? (
-  <p>No events found.</p>
-) : (
-  events.map((event) => (
-    <div key={event.id} className="event-card">
+    <button
+      onClick={() => setEditingId(null)}
+      className="event-btn event-delete-btn"
+    >
+      Cancel
+    </button>
+  </div>
+</>
+  ) : (
+    <>
       <h3>{event.title}</h3>
 
       <p>
@@ -389,23 +385,23 @@ const handleUpdateEvent = async () => {
       </p>
 
       <button
-  onClick={() => handleEditClick(event)}
-  className="event-btn event-edit-btn"
-  style={{ marginTop: 10, marginRight: 10 }}
->
-  Edit
-</button>
+        onClick={() => handleEditClick(event)}
+        className="event-btn event-edit-btn"
+        style={{ marginTop: 10, marginRight: 10 }}
+      >
+        Edit
+      </button>
 
-
-<button
-  onClick={() => handleDeleteEvent(event.id)}
-  className="event-btn event-delete-btn"
-  style={{ marginTop: 10 }}
->  Delete
-</button>
-
-
-    </div>
+      <button
+        onClick={() => handleDeleteEvent(event.id)}
+        className="event-btn event-delete-btn"
+        style={{ marginTop: 10 }}
+      >
+        Delete
+      </button>
+    </>
+  )}
+</div>
   ))
 )}
         </div>

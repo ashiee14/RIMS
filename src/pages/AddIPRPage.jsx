@@ -40,7 +40,8 @@ const AddIPRPage = () => {
 
       navigate("/ipr");
 
-    } catch (error) {
+    } 
+    catch (error) {
   console.error("FULL ERROR:", error);
 
   console.log("Backend Response:", error.response);
