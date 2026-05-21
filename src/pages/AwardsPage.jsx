@@ -11,16 +11,8 @@ const {
 const AwardsPage = () => {
   const [awards, setAwards] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [editingId, setEditingId] = useState(null);
 
   const navigate = useNavigate();
-  
-  const [editForm, setEditForm] = useState({
-    title: "",
-    awarding_agency: "",
-    award_date: "",
-    recipient: "",
-  });
 
   useEffect(() => {
     const root = document.getElementById("root");
@@ -28,83 +20,6 @@ const AwardsPage = () => {
 
     return () => root.classList.remove("aurora-root");
   }, []);
-
-  const handleDeleteAward = async (id) => {
-  try {
-    const token = localStorage.getItem("access_token");
-
-    const response = await fetch(`/api/awards/${id}/`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    console.log("DELETE STATUS:", response.status);
-
-    if (response.status === 204) {
-      setAwards((prev) =>
-        prev.filter((award) => award.id !== id)
-      );
-
-      alert("Award deleted successfully!");
-    } else {
-      alert("Failed to delete award");
-    }
-
-  } catch (error) {
-    console.error("DELETE ERROR:", error);
-  }
-};
-
-const handleEditClick = (award) => {
-  setEditingId(award.id);
-
-  setEditForm({
-    title: award.title,
-    awarding_agency: award.awarding_agency,
-    award_date: award.award_date,
-    recipient: award.recipient?.full_name || "",
-  });
-};
-
-const handleUpdateAward = async (id) => {
-  try {
-    const token = localStorage.getItem("access_token");
-
-    const response = await fetch(`/api/awards/${id}/`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(editForm),
-    });
-
-    const data = await response.json();
-
-    console.log("UPDATE STATUS:", response.status);
-    console.log("UPDATE DATA:", data);
-
-    if (response.ok) {
-      setAwards((prev) =>
-        prev.map((award) =>
-          award.id === id ? data : award
-        )
-      );
-
-      setEditingId(null);
-
-      alert("Award updated successfully!");
-    } else {
-      alert("Failed to update award");
-    }
-
-  } catch (error) {
-    console.error("UPDATE ERROR:", error);
-  }
-};
-
 
   useEffect(() => {
         const loadAwards = async () => {
@@ -171,124 +86,29 @@ const handleUpdateAward = async (id) => {
         ) : (
           <div className="awards-grid">
             {awards.map((award) => (
-              <div key={award.id} className="award-card">
+              <div
+                key={award.id}
+                className="award-card"
+                onClick={() => navigate(`/awards/${award.id}`)}
+              >
+                <h3>{award.title}</h3>
 
-                {editingId === award.id ? (
-                  <>
-                    <input
-                      type="text"
-                      placeholder="Award Title"
-                      value={editForm.title}
-                      onChange={(e) =>
-                        setEditForm({
-                          ...editForm,
-                          title: e.target.value,
-                        })
-                      }
-                      className="edit-input"
-                    />
+                <p>
+                  <strong>Awarding Agency:</strong>{" "}
+                  {award.awarding_agency}
+                </p>
 
-                    <input
-                      type="text"
-                      placeholder="Awarding Agency"
-                      value={editForm.awarding_agency}
-                      onChange={(e) =>
-                        setEditForm({
-                          ...editForm,
-                          awarding_agency: e.target.value,
-                        })
-                      }
-                      className="edit-input"
-                    />
+                <p>
+                  <strong>Award Date:</strong>{" "}
+                  {award.award_date}
+                </p>
 
-                    <input
-                      type="date"
-                      value={editForm.award_date}
-                      onChange={(e) =>
-                        setEditForm({
-                          ...editForm,
-                          award_date: e.target.value,
-                        })
-                      }
-                      className="edit-input"
-                    />
-
-                    <input
-                      type="text"
-                      placeholder="Recipient"
-                      value={editForm.recipient}
-                      onChange={(e) =>
-                        setEditForm({
-                          ...editForm,
-                          recipient: e.target.value,
-                        })
-                      }
-                      className="edit-input"
-                    />
-
-                    <div className="btn-row">
-                      <button
-                        onClick={() =>
-                          handleUpdateAward(award.id)
-                        }
-                        className="action-btn edit-btn"
-                      >
-                        Save
-                      </button>
-
-                      <button
-                        onClick={() =>
-                          setEditingId(null)
-                        }
-                        className="action-btn cancel-btn"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <h3>{award.title}</h3>
-
-                    <p>
-                      <strong>Awarding Agency:</strong>{" "}
-                      {award.awarding_agency}
-                    </p>
-
-                    <p>
-                      <strong>Award Date:</strong>{" "}
-                      {award.award_date}
-                    </p>
-
-                    {award.recipient && (
-                      <p>
-                        <strong>Recipient:</strong>{" "}
-                        {award.recipient.full_name}
-                      </p>
-                    )}
-
-                    <div className="btn-row">
-                      <button
-                        onClick={() =>
-                          handleEditClick(award)
-                        }
-                        className="action-btn edit-btn"
-                      >
-                        Edit
-                      </button>
-
-                      <button
-                        onClick={() =>
-                          handleDeleteAward(award.id)
-                        }
-                        className="action-btn delete-btn"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </>
+                {award.recipient && (
+                  <p>
+                    <strong>Recipient:</strong>{" "}
+                    {award.recipient.full_name}
+                  </p>
                 )}
-
               </div>
             ))}
           </div>
@@ -342,10 +162,10 @@ const handleUpdateAward = async (id) => {
 
 .award-card:hover {
   transform: translateY(-5px);
-
+  cursor:pointer;
   box-shadow:
     0 8px 20px
-    rgba(0, 0, 0, 0.25);
+    rgb(255, 255, 255);
 }
 
 .award-card h3 {

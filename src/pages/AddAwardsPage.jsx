@@ -16,6 +16,14 @@ const {
 const AddAwardsPage = ({ onNav }) => {
   const navigate = useNavigate();
 
+  const [selectedFile, setSelectedFile] = useState(null);
+
+  const [uploading, setUploading] = useState(false);
+
+  const [certificateId, setCertificateId] = useState(null);
+
+  const [previewUrl, setPreviewUrl] = useState("");
+
   const [fields, setFields] = useState({
     faculty: "",
     dept: "",
@@ -39,17 +47,70 @@ const AddAwardsPage = ({ onNav }) => {
       root.classList.remove("aurora-root");
   }, []);
   
+  const handleCertificateUpload = async () => {
+      if (!selectedFile) {
+        alert("Please select a certificate image first");
+        return;
+      }
+
+      try {
+        setUploading(true);
+
+        const token = localStorage.getItem("access_token");
+
+        const formData = new FormData();
+
+        formData.append("certificate", selectedFile);
+
+        const response = await fetch(
+          "/api/awards/upload-certificate/",
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            body: formData,
+          }
+        );
+
+        const data = await response.json();
+
+        console.log("UPLOAD RESPONSE:", data);
+
+        if (response.ok) {
+          setCertificateId(data.file_upload_id);
+
+          setFields((prev) => ({
+            ...prev,
+            title: data.title || "",
+            agency: data.awarding_agency || "",
+            faculty: data.recipient_name || "",
+            date: data.award_date || "",
+          }));
+
+          alert("Certificate uploaded and details extracted!");
+        } else {
+          alert("Upload failed");
+        }
+      } catch (error) {
+        console.error("UPLOAD ERROR:", error);
+        alert("Something went wrong");
+      } finally {
+        setUploading(false);
+      }
+    };
+
   const handleSaveAward = async () => {
   console.log("BUTTON CLICKED");
 
   try {
     const token = localStorage.getItem("access_token");
-
     const payload = {
       title: fields.title,
       awarding_agency: fields.agency,
       award_date: fields.date,
       recipient_id: 1,
+      certificate_id: certificateId,
     };
 
     console.log("SENDING:", payload);
@@ -114,29 +175,62 @@ const AddAwardsPage = ({ onNav }) => {
         </h3>
 
         <div className="upload-preview">
-          <div>
-            <div
+          {previewUrl ? (
+            <img
+              src={previewUrl}
+              alt="Certificate Preview"
               style={{
-                fontSize: 34,
-                marginBottom: 6,
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                borderRadius: 10,
               }}
-            >
-              📜
-            </div>
+            />
+          ) : (
+            <div>
+              <div
+                style={{
+                  fontSize: 34,
+                  marginBottom: 6,
+                }}
+              >
+                📜
+              </div>
 
-            <div
-              style={{
-                fontSize: 12,
-                opacity: 0.8,
-              }}
-            >
-              Certificate Preview
+              <div
+                style={{
+                  fontSize: 12,
+                  opacity: 0.8,
+                }}
+              >
+                Certificate Preview
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
-        <button className="action-btn save-btn">
-          Upload Image
+        <input
+          type="file"
+          accept="image/*,.pdf"
+          onChange={(e) => {
+            const file = e.target.files[0];
+
+            if (file) {
+              setSelectedFile(file);
+
+              setPreviewUrl(URL.createObjectURL(file));
+            }
+          }}
+          style={{ marginBottom: 14 }}
+        />
+
+        <button
+          type="button"
+          className="action-btn save-btn"
+          onClick={handleCertificateUpload}
+          disabled={uploading}
+        >
+          {uploading ? "Uploading..." : "Upload Image"}
         </button>
       </div>
 

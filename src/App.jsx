@@ -10,6 +10,7 @@
 
   import PublicationsPage from "./pages/PublicationsPage";
   import AwardsPage from "./pages/AwardsPage";
+  import AwardDetailsPage from "./pages/AwardDetailsPage";
   import IPRPage from "./pages/IPRPage";
   import BooksChaptersPage from "./pages/BooksChaptersPage";
   import EventsPage from "./pages/EventsPage";
@@ -45,6 +46,7 @@
 
           <Route path="/publications" element={<PublicationsPage />} key={location.key} />
           <Route path="/awards" element={<AwardsPage />} key={location.key} />
+          <Route path="/awards/:id" element={<AwardDetailsPage />} key={location.key} />
           <Route path="/ipr" element={<IPRPage />} key={location.key} />
           <Route path="/books-chapters" element={<BooksChaptersPage />} key={location.key} />
           <Route path="/events" element={<EventsPage />} key={location.key} />
