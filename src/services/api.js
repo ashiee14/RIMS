@@ -491,5 +491,46 @@ export const leaveEvent = async (id) => {
   return res.data;
 };
 
+/* ────────────────────────────────────────────────────────────────
+   Books API
+──────────────────────────────────────────────────────────────── */
+
+// GET all books
+export const fetchBooks = async (params = {}) => {
+  const res = await API.get("/books/", {
+    params,
+  });
+
+  return res.data;
+};
+
+// GET single book
+export const fetchBookById = async (id) => {
+  const res = await API.get(`/books/${id}/`);
+
+  return res.data;
+};
+
+// CREATE book
+export const addBook = async (data) => {
+  const res = await API.post("/books/create/", data);
+
+  return res.data;
+};
+
+// UPDATE book
+export const updateBook = async (id, data) => {
+  const res = await API.patch(`/books/${id}/`, data);
+
+  return res.data;
+};
+
+// DELETE book
+export const deleteBook = async (id) => {
+  const res = await API.delete(`/books/${id}/`);
+
+  return res.data;
+};
+
 
 export default API;

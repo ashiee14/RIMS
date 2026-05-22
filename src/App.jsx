@@ -24,6 +24,7 @@
   import AddResearchProjectPage from "./pages/AddResearchProjectPage";
 
   import UserProfilePage from "./pages/UserProfilePage";
+  import UsersPage from "./pages/UsersPage";
   import AdminPanel from "./pages/AdminPanel";
   import AddUserPage from "./pages/AddUserPage";
 
@@ -60,6 +61,8 @@
           <Route path="/add-research-project" element={<AddResearchProjectPage />} key={location.key} />
           
           <Route path="/user-profile" element={<UserProfilePage />} key={location.key} />
+          <Route path="/users/:id" element={<UserProfilePage />} />
+          <Route path="/users" element={<UsersPage />} key={location.key} />
           <Route path="/admin" element={<AdminPanel />} key={location.key} />
           <Route path="/admin/add-user" element={<AddUserPage />} key={location.key} />  
         </Route>

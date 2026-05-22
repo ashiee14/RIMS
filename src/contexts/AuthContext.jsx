@@ -44,26 +44,29 @@ const [user, setUser] = useState(storedUser || null);
       });
 
       const res = await API.post("/users/auth/google/", { token: googleToken });
-
+      console.log("LOGIN RESPONSE:", res.data);
+      
       localStorage.setItem("access_token", res.data.access);
       localStorage.setItem("refresh_token", res.data.refresh);
 
       // Decode Google token to get user info
       const payload = JSON.parse(atob(googleToken.split('.')[1]));
-      setUser({
+          setUser({
+        id: res.data.user?.id,
         name: payload.name,
         email: payload.email,
         picture: payload.picture,
       });
 
       localStorage.setItem(
-  "user_info",
-  JSON.stringify({
-    name: payload.name,
-    email: payload.email,
-    picture: payload.picture,
-  })
-);
+        "user_info",
+        JSON.stringify({
+          id: res.data.user?.id,
+          name: payload.name,
+          email: payload.email,
+          picture: payload.picture,
+        })
+      );
 
     } catch (error) {
       console.error('Login failed:', error);

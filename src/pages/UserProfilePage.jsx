@@ -1,6 +1,10 @@
 import { useState, useEffect } from "react";
 import Aurora from "../components/Aurora";
-import { COLORS, FONT } from "../styles/theme";
+import { COLORS} from "../styles/theme";
+import axios from "axios";
+import { useRef } from "react";
+
+const API_BASE = "https://rims-api.prerna.sh";
 
 const { 
   crimson: CRIMSON,
@@ -15,16 +19,172 @@ const {
 } = COLORS;
 
 
-const UserProfilePage = ({ onNav }) => {
+const UserProfilePage = () => {
+  const fetchedRef = useRef(false);
+  
+  const token = localStorage.getItem("access_token");
+
+  let id = null;
+
+  if (token) {
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      id = payload.user_id;
+    } catch (err) {
+      console.error("Invalid token", err);
+    }
+  }
+
   const [activeTab, setActiveTab] = useState("Publications");
-  const pubs = [
-    { id: 1, title: "Minimal Erythema Dose Variability in Indian Skin: Clinical Implications Across Pigmentary and Inflammatory Dermatoses", authors: "Divya Asnani, Shrishti Singh, Anushka Agarwal, Priya Garg, Aayush Gupta", journal: "Clinical and Experimental Dermatology  Published: 4 Oct 2025", q: "Q2", if: 2.9, hindex: 92, fwci: 0, pe: 0, indexed: "PubMed" },
-  ];
+  
+  const [error, setError] = useState("");
+  const [pubs, setPubs] = useState([]);
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState(null);
+  
   useEffect(() => {
-  const root = document.getElementById("root");
-  root.classList.add("aurora-root");
-  return () => root.classList.remove("aurora-root");
-}, []);
+      const root = document.getElementById("root");
+      root.classList.add("aurora-root");
+
+      if (fetchedRef.current) return;
+
+      fetchedRef.current = true;
+
+      if (id) {
+        fetchProfile();
+      } else {
+        console.log("No ID found");
+        setLoading(false);
+      }
+
+      return () => root.classList.remove("aurora-root");
+    }, [id]);
+  
+  
+  const fetchProfile = async () => {
+    try {
+      setError("");
+
+      if (!id) {
+        console.log("No user ID found");
+        setLoading(false);
+        return;
+      }
+
+      // USER PROFILE
+
+      console.log("Fetching user:", id);
+
+      console.log("TOKEN:", token);
+      console.log("USER ID:", id);
+      console.log("API URL:", `${API_BASE}/api/users/${id}/`);
+
+      const userRes = await axios.get(
+        `${API_BASE}/api/users/${id}/`, 
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const fetchedUser = userRes.data;
+      console.log("USER RESPONSE:", fetchedUser);
+
+      if (!fetchedUser) {
+        console.log("No profile returned from backend");
+        return;
+      }
+
+      console.log("PROFILE DATA:", fetchedUser);
+
+      setProfile(fetchedUser);
+
+      // PUBLICATIONS
+      if (fetchedUser?.orcid_id) {
+        const pubRes = await axios.get(
+          `${API_BASE}/api/publications/researcher/${fetchedUser.orcid_id}/`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        setPubs(pubRes.data.results || []);
+
+              // PUBLICATION STATS
+      const statsRes = await axios.get(
+        `${API_BASE}/api/publications/stats/`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      console.log("STATS RESPONSE:", statsRes.data);
+
+      if (!statsRes.data) {
+        console.log("No stats returned");
+      }
+
+      setStats(statsRes.data);
+      }
+
+    } 
+    catch (err) {
+      console.log("FULL ERROR:", err);
+
+      if (err.response) {
+        console.log("ERROR STATUS:", err.response.status);
+        console.log("ERROR DATA:", err.response.data);
+      }
+
+      console.error(err);
+
+      setError("Failed to load profile");
+    }
+  finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          color: TEXT_MUTED,
+          fontSize: 18,
+        }}
+      >
+        Loading profile...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          color: "CRIMSON",
+          fontSize: 18,
+        }}
+      >
+        {error}
+      </div>
+    );
+  }
+
   return (
     <div style={{ maxWidth: 1100, margin: "0 auto", padding: "28px 24px" }}>
       {/* Profile Header */}
@@ -34,19 +194,26 @@ const UserProfilePage = ({ onNav }) => {
       blend={0.5}
       />  
       <div style={{ background: CARD_BG, border: `1px solid ${BORDER}`, borderRadius: 14, padding: "20px 24px", marginBottom: 20, display: "flex", alignItems: "center", gap: 20 }}>
-        <div style={{ width: 90, height: 90, borderRadius: 10, background: `linear-gradient(135deg, ${CRIMSON_LIGHT}, ${TEAL})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, color: "#fff", fontWeight: 700, flexShrink: 0 }}>AG</div>
+        <div style={{ width: 90, height: 90, borderRadius: 10, background: `linear-gradient(135deg, ${CRIMSON_LIGHT}, ${TEAL})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, color: "#fff", fontWeight: 700, flexShrink: 0 }}> {`${profile?.first_name?.[0] || ""}${profile?.last_name?.[0] || ""}`} </div>
         <div style={{ flex: 1 }}>
-          <h2 style={{ fontSize: 20, fontWeight: 700, color: CRIMSON, marginBottom: 2 }}>User 1</h2>
-          <div style={{ fontSize: 14, color: TEAL, fontWeight: 500, marginBottom: 2 }}>Professor and Head of department</div>
-          <div style={{ fontSize: 13, color: TEXT_MUTED, marginBottom: 8 }}>Dermatology, Venereology & Leprosy</div>
-          <div style={{ fontSize: 12, color: TEXT_MUTED, marginBottom: 6 }}>✉ aayush.gupta@dpu.edu.in</div>
-          <div style={{ display: "flex", gap: 8 }}>
+          <h2 style={{ fontSize: 20, fontWeight: 700, color: CRIMSON, marginBottom: 2 }}>{profile?.full_name}</h2>
+          <div style={{ fontSize: 14, color: TEAL, fontWeight: 500, marginBottom: 2 }}>{profile?.designation || "Faculty"}</div>
+          <div style={{ fontSize: 13, color: "#2200a8", marginBottom: 8 }}>
+            {profile?.department?.name || "Unknown Department"},{" "}
+            {profile?.institution?.name || "Unknown Institution"}
+          </div>
+          <div style={{ fontSize: 12, marginBottom: 6, color:"#2200a8"}}>{profile?.email}</div>
+          <div style={{ display: "flex", gap: 8, color:"#2200a8" }}>
             {["ORCID", "LinkedIn", "X"].map(s => (
               <span key={s} style={{ fontSize: 11, background: LIGHT_BG, border: `1px solid ${BORDER}`, padding: "3px 8px", borderRadius: 5, color: TEXT_MUTED, cursor: "pointer" }}>{s}</span>
             ))}
           </div>
         </div>
-        <button style={{ border: `1px solid ${BORDER}`, background: "#fff", padding: "8px 14px", borderRadius: 8, fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>Edit Profile ↗</button>
+        <button 
+          onClick={() => console.log("Edit Profile")}
+          style={{ color: "#2200a8", border: `1px solid ${BORDER}`, background: "#fff", padding: "8px 14px", borderRadius: 8, fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
+            Edit Profile ↗
+          </button>
       </div>
 
       {/* Overview */}
@@ -60,29 +227,40 @@ const UserProfilePage = ({ onNav }) => {
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1.4fr 1fr 1fr 1.4fr", gap: 10, marginBottom: 12 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 10, marginBottom: 12 }}>
         <div style={{ background: CARD_BG, border: `1px solid ${BORDER}`, borderRadius: 12, padding: "14px 16px" }}>
           <div style={{ fontSize: 11, color: TEXT_MUTED }}>Total Publications/Proceedings</div>
-          <div style={{ fontSize: 28, fontWeight: 700, marginTop: 4 }}>85</div>
+          <div style={{ fontSize: 28, fontWeight: 700, marginTop: 4 }}>{pubs.length}</div>
           <div style={{ fontSize: 11, color: TEXT_HINT }}>0 Retracted</div>
         </div>
         <div style={{ background: CRIMSON, borderRadius: 12, padding: "14px 16px" }}>
           <div style={{ fontSize: 11, color: "rgba(255,255,255,0.7)" }}>Indexed Publications/Proceedings</div>
-          <div style={{ fontSize: 28, fontWeight: 700, color: "#fff", marginTop: 4 }}>80</div>
+          <div style={{ fontSize: 28, fontWeight: 700, color: "#fff", marginTop: 4 }}>
+            {stats?.indexed_publications || 0}</div>
         </div>
         <div style={{ background: CARD_BG, border: `1px solid ${BORDER}`, borderRadius: 12, padding: "14px 16px" }}>
           <div style={{ fontSize: 11, color: TEXT_MUTED }}>Impact Factor Average</div>
-          <div style={{ fontSize: 22, fontWeight: 700, marginTop: 4 }}>3.05</div>
-          <div style={{ fontSize: 11, color: TEXT_HINT }}>Cumulative: 259.2</div>
+          <div style={{ fontSize: 22, fontWeight: 700, marginTop: 4 }}>
+            {stats?.average_impact_factor || "0.0"}
+          </div>
         </div>
         <div style={{ background: TEAL, borderRadius: 12, padding: "14px 16px" }}>
           <div style={{ fontSize: 11, color: "rgba(255,255,255,0.7)" }}>1st/Corres. Author Publications</div>
-          <div style={{ fontSize: 28, fontWeight: 700, color: "#fff", marginTop: 4 }}>56</div>
+          <div style={{ fontSize: 28, fontWeight: 700, color: "#fff", marginTop: 4 }}>
+              {stats?.first_author_publications || 0}
+            </div>
         </div>
         <div style={{ background: CARD_BG, border: `1px solid ${BORDER}`, borderRadius: 12, padding: "14px 16px" }}>
           <div style={{ fontSize: 11, color: TEXT_MUTED, marginBottom: 8 }}>Research Impact</div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 4 }}>
-            {[["Policy", 4], ["News", 8], ["Wiki", 8], ["FWCI", "0.58"], ["PE", 59]].map(([l, v]) => (
+            {
+            [
+              ["Policy", stats?.policy_mentions || 0],
+              ["News", stats?.news_mentions || 0],
+              ["Wiki", stats?.wiki_mentions || 0],
+              ["FWCI", stats?.fwci || 0],
+              ["PE", stats?.patent_citations || 0]
+            ].map(([l, v]) => (
               <div key={l} style={{ fontSize: 11 }}><span style={{ color: TEXT_HINT }}>{l} </span><span style={{ fontWeight: 600 }}>{v}</span></div>
             ))}
           </div>
@@ -103,28 +281,84 @@ const UserProfilePage = ({ onNav }) => {
         </div>
         <div style={{ padding: "16px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-            <span style={{ fontSize: 13, color: TEXT_MUTED }}>Publications (showing 1–10 of 15 results)</span>
+            <span style={{ fontSize: 13, color: TEXT_MUTED }}>
+              Publications ({pubs.length} results)
+            </span>
             <div style={{ display: "flex", gap: 8 }}>
               <button style={{ padding: "5px 12px", border: `1px solid ${BORDER}`, borderRadius: 6, background: "#fff", fontSize: 12, cursor: "pointer" }}>Sort By ▾</button>
               <button style={{ padding: "5px 12px", border: `1px solid ${BORDER}`, borderRadius: 6, background: "#fff", fontSize: 12, cursor: "pointer" }}>Filter ▾</button>
             </div>
           </div>
+
+          {pubs.length === 0 && (
+            <div
+              style={{
+                padding: "30px",
+                textAlign: "center",
+                color: TEXT_MUTED,
+                border: `1px dashed ${BORDER}`,
+                borderRadius: 10,
+              }}
+            >
+              No publications found
+            </div>
+          )}
+
+
           {pubs.map((p) => (
-            <div key={p.id} style={{ border: `1px solid ${BORDER}`, borderRadius: 10, padding: "14px", marginBottom: 10 }}>
+            <div key={p.id || p.title} style={{ border: `1px solid ${BORDER}`, borderRadius: 10, padding: "14px", marginBottom: 10 }}>
               <h4 style={{ fontSize: 13, color: CRIMSON, fontWeight: 600, marginBottom: 5, lineHeight: 1.4 }}>{p.title}</h4>
-              <div style={{ fontSize: 11, color: TEXT_MUTED, marginBottom: 3 }}>Authors: {p.authors}</div>
-              <div style={{ fontSize: 11, color: TEXT_HINT, marginBottom: 10 }}>{p.journal}</div>
+              <div style={{ fontSize: 11, color: TEXT_MUTED, marginBottom: 3 }}> Authors: {
+                p.author_names?.length
+                  ? p.author_names.join(", ")
+                  : "Unknown Authors"
+              }</div>
+              <div style={{ fontSize: 11, color: TEXT_HINT, marginBottom: 10 }}> {p.journal?.name || "Unknown Journal"} • {p.year || "N/A"} </div>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 10 }}>
-                <span style={{ background: CRIMSON, color: "#fff", padding: "3px 8px", borderRadius: 5, fontSize: 11 }}>Quartile: {p.q}</span>
-                <span style={{ border: `1px solid ${BORDER}`, padding: "3px 8px", borderRadius: 5, fontSize: 11 }}>Impact Factor: {p.if}</span>
-                <span style={{ border: `1px solid ${BORDER}`, padding: "3px 8px", borderRadius: 5, fontSize: 11 }}>H-Index: {p.hindex}</span>
-                <span style={{ border: `1px solid ${BORDER}`, padding: "3px 8px", borderRadius: 5, fontSize: 11 }}>FWCI: {p.fwci}</span>
-                <span style={{ border: `1px solid ${BORDER}`, padding: "3px 8px", borderRadius: 5, fontSize: 11 }}>Publication Equivalent: {p.pe}</span>
+                <span
+                  style={{
+                    background: CRIMSON,
+                    color: "#fff",
+                    padding: "3px 8px",
+                    borderRadius: 5,
+                    fontSize: 11,
+                  }}
+                >
+                  {p.publication_type || "Publication"}
+                </span>
+
+                <span
+                  style={{
+                    border: `1px solid ${BORDER}`,
+                    padding: "3px 8px",
+                    borderRadius: 5,
+                    fontSize: 11,
+                  }}
+                >
+                  Citations: {p.cited_by_count || 0}  
+                </span>
+
+                {p.is_open_access && (
+                  <span
+                    style={{
+                      border: `1px solid ${BORDER}`,
+                      padding: "3px 8px",
+                      borderRadius: 5,
+                      fontSize: 11,
+                    }}
+                  >
+                    Open Access
+                  </span>
+                )}
               </div>
               <div style={{ display: "flex", gap: 8 }}>
-                <button style={{ border: `1px solid ${BORDER}`, background: "#fff", padding: "5px 12px", borderRadius: 6, fontSize: 11, cursor: "pointer" }}>View More</button>
-                <button style={{ border: `1px solid ${BORDER}`, background: "#fff", padding: "5px 12px", borderRadius: 6, fontSize: 11, cursor: "pointer" }}>Cite</button>
-                <button style={{ border: `1px solid ${BORDER}`, background: "#fff", padding: "5px 12px", borderRadius: 6, fontSize: 11, cursor: "pointer" }}>Preview PDF</button>
+                <button 
+                  onClick={() => console.log("View More")} 
+                  style={{ border: `1px solid ${BORDER}`, background: "#fff", padding: "5px 12px", borderRadius: 6, fontSize: 11, cursor: "pointer" }}>
+                    View More
+                </button>
+                <button onClick={() => console.log("Cite")} style={{ border: `1px solid ${BORDER}`, background: "#fff", padding: "5px 12px", borderRadius: 6, fontSize: 11, cursor: "pointer" }}>Cite</button>
+                <button onClick={() => console.log("Preview PDF")} style={{ border: `1px solid ${BORDER}`, background: "#fff", padding: "5px 12px", borderRadius: 6, fontSize: 11, cursor: "pointer" }}>Preview PDF</button>
               </div>
             </div>
           ))}
