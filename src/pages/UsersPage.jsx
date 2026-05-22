@@ -27,7 +27,7 @@ const UsersPage = () => {
 
   const fetchUsers = async () => {
     try {
-      const token = localStorage.getItem("access");
+      const token = localStorage.getItem("access_token");
 
       const res = await axios.get(
         `${API_BASE}/api/users/`,

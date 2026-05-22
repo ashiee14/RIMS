@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import Aurora from "../components/Aurora";
 import { COLORS } from "../styles/theme";
 import { fetchProjects } from "../services/api";
@@ -9,7 +9,6 @@ const {
   crimson: CRIMSON,
   teal: TEAL,
   border: BORDER,
-  text: TEXT,
   textMuted: TEXT_MUTED,
   lightBg: LIGHT_BG,
   cardBg: CARD_BG,
@@ -44,62 +43,7 @@ const ResearchPage = ({ onNav }) => {
     { value: "status", label: "Status" },
   ];
 
-  const filteredRows = useMemo(() => {
-    const currentYear = new Date().getFullYear();
-
-    const yearRange = {
-      "Current Year": [currentYear, currentYear],
-      "Last Year": [currentYear - 1, currentYear - 1],
-      "Last 3 Years": [currentYear - 2, currentYear],
-      "Last 5 Years": [currentYear - 4, currentYear],
-      All: [1900, currentYear],
-    }[timeFilter] || [1900, currentYear];
-
-    const [minYear, maxYear] = yearRange;
-
-    const normalize = (value) => String(value || "").trim().toLowerCase();
-    const matches = (value, filterValue) => {
-      if (!filterValue || filterValue === "all") return true;
-      return normalize(value).includes(filterValue.trim().toLowerCase());
-    };
-
-    return rows
-      .filter((row) => {
-        if (!row.date) return timeFilter === "All";
-        const year = new Date(row.date).getFullYear();
-        return year >= minYear && year <= maxYear;
-      })
-      .filter((row) => {
-        return (
-          matches(row.faculty, appliedFilters.faculty) &&
-          matches(row.dept, appliedFilters.dept) &&
-          matches(row.name, appliedFilters.name) &&
-          matches(row.fundedBy, appliedFilters.fundedBy) &&
-          matches(row.org, appliedFilters.org) &&
-          matches(row.status, appliedFilters.status) &&
-          (appliedFilters.funded === "all" ||
-            (appliedFilters.funded === "Funded" && row.funded) ||
-            (appliedFilters.funded === "Not Funded" && !row.funded))
-        );
-      })
-      .sort((a, b) => {
-        const direction = sortDirection === "desc" ? -1 : 1;
-
-        if (sortBy === "funds") {
-          return direction * (Number(a.funds) - Number(b.funds));
-        }
-
-        if (sortBy === "date") {
-          const aDate = a.date ? new Date(a.date).getTime() : 0;
-          const bDate = b.date ? new Date(b.date).getTime() : 0;
-          return direction * (aDate - bDate);
-        }
-
-        return direction * a[sortBy].localeCompare(b[sortBy], undefined, {
-          sensitivity: "base",
-        });
-      });
-  }, [rows, timeFilter, appliedFilters, sortBy, sortDirection]);
+  const filteredRows = rows;
 
   const handleFilterChange = (key, value) => {
     setSidebarFilters((prev) => ({
@@ -129,18 +73,34 @@ const ResearchPage = ({ onNav }) => {
       try {
         const apiParams = {};
 
-        if (appliedFilters.name) apiParams.title = appliedFilters.name;
+        if (appliedFilters.name)
+          apiParams["title__icontains"] = appliedFilters.name;
+
         if (appliedFilters.faculty)
-          apiParams["principal_investigator__full_name"] = appliedFilters.faculty;
+          apiParams["principal_investigator__full_name__icontains"] =
+            appliedFilters.faculty;
+
         if (appliedFilters.dept)
-          apiParams["department__name"] = appliedFilters.dept;
-        if (appliedFilters.status) apiParams.status = appliedFilters.status;
-        if (appliedFilters.funded === "Funded") apiParams.funded = true;
-        if (appliedFilters.funded === "Not Funded") apiParams.funded = false;
+          apiParams["department__name__icontains"] =
+            appliedFilters.dept;
+
+        if (appliedFilters.status)
+          apiParams["status__icontains"] =
+            appliedFilters.status;
+
+        if (appliedFilters.funded === "Funded")
+          apiParams.funded = true;
+
+        if (appliedFilters.funded === "Not Funded")
+          apiParams.funded = false;
+
         if (appliedFilters.fundedBy)
-          apiParams["funding_agency__name"] = appliedFilters.fundedBy;
+          apiParams["funding_agency__name__icontains"] =
+            appliedFilters.fundedBy;
+
         if (appliedFilters.org)
-          apiParams["funding_agency__country"] = appliedFilters.org;
+          apiParams["funding_agency__country__icontains"] =
+            appliedFilters.org;
 
         const orderingField = {
           date: "start_date",
@@ -154,6 +114,25 @@ const ResearchPage = ({ onNav }) => {
         if (orderingField) {
           apiParams.ordering = `${sortDirection === "desc" ? "-" : ""}${orderingField}`;
         }
+        
+        const currentYear = new Date().getFullYear();
+
+        if (timeFilter === "Current Year") {
+          apiParams.start_date__year = currentYear;
+        }
+
+        if (timeFilter === "Last Year") {
+          apiParams.start_date__year = currentYear - 1;
+        }
+
+        if (timeFilter === "Last 3 Years") {
+          apiParams.start_date__gte = `${currentYear - 2}-01-01`;
+        }
+
+        if (timeFilter === "Last 5 Years") {
+          apiParams.start_date__gte = `${currentYear - 4}-01-01`;
+        }
+
 
         const data = await fetchProjects(apiParams);
 
@@ -172,7 +151,7 @@ const ResearchPage = ({ onNav }) => {
         }
 
         const formatted = projects.map((item, index) => ({
-          id: item.id || index + 1,
+          id: index + 1,          
           faculty: item.principal_investigator?.full_name || "N/A",
           dept: item.department?.name || "N/A",
           name: item.title || "N/A",
@@ -182,7 +161,7 @@ const ResearchPage = ({ onNav }) => {
               ? `${item.start_date} - ${item.end_date}`
               : "--",
           date: item.start_date || "--",
-          funded: Number(item.amount) > 0,
+          funded: Number(item.amount || 0) > 0,
           funds: item.amount || 0,
           fundedBy: item.funding_agency?.name || "N/A",
           org: item.funding_agency?.country || "N/A",
@@ -200,7 +179,7 @@ const ResearchPage = ({ onNav }) => {
     };
 
     loadData();
-  }, [appliedFilters, sortBy, sortDirection]);
+  }, [appliedFilters, sortBy, sortDirection, timeFilter]);
 
  
   return (
@@ -422,7 +401,22 @@ const ResearchPage = ({ onNav }) => {
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredRows.map((r) => (
+                      {filteredRows.length === 0 ? (
+                        <tr>
+                          <td
+                            colSpan={13}
+                            style={{
+                              padding: "32px",
+                              textAlign: "center",
+                              color: TEXT_MUTED,
+                              fontSize: 13,
+                            }}
+                          >
+                            No research projects found.
+                          </td>
+                        </tr>
+                      ) : (
+                        filteredRows.map((r) => (
                         <tr
                           key={r.id}
                           style={{ borderBottom: `1px solid ${BORDER}` }}
@@ -438,7 +432,7 @@ const ResearchPage = ({ onNav }) => {
                               padding: "14px 12px",
                               fontSize: 13,
                               textAlign: "center",
-                              color: TEXT_MUTED,
+                              color: "#22125a",
                             }}
                           >
                             {r.id}
@@ -457,7 +451,7 @@ const ResearchPage = ({ onNav }) => {
                             style={{
                               padding: "14px 12px",
                               fontSize: 12,
-                              color: TEXT_MUTED,
+                              color: "#22125a",
                               maxWidth: 140,
                             }}
                           >
@@ -481,7 +475,7 @@ const ResearchPage = ({ onNav }) => {
                               padding: "14px 12px",
                               fontSize: 12,
                               textAlign: "center",
-                              color: TEXT_MUTED,
+                              color: "#22125a",
                             }}
                           >
                             {r.duration}
@@ -547,7 +541,7 @@ const ResearchPage = ({ onNav }) => {
                                 border: "none",
                                 background: "none",
                                 cursor: "pointer",
-                                color: TEXT_MUTED,
+                                color: "#22125a",
                                 fontSize: 18,
                               }}
                             >
@@ -555,7 +549,8 @@ const ResearchPage = ({ onNav }) => {
                             </button>
                           </td>
                         </tr>
-                      ))}
+                      ))
+                    )}
                     </tbody>
                   </table>
                 </div>
@@ -580,7 +575,7 @@ const ResearchPage = ({ onNav }) => {
           max-width: 1400px;
           margin: 0 auto;
           padding: clamp(16px, 3vw, 28px);
-          color: #ffffff;
+          color: #22125a;
         }
 
         .research-header {

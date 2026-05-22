@@ -1,7 +1,6 @@
 // src/services/api.js
 import axios from "axios";
 
-
 const BASE_URL = "https://rims-api.prerna.sh/api";
 
 const API = axios.create({
@@ -361,7 +360,7 @@ export const fetchProjects = async (params = {}) => {
 };
 
 // CREATE project
-export const addProject = async (data) => {
+export const createProject = async (data) => {
   const res = await API.post("/projects/create/", data);
   return res.data;
 };
