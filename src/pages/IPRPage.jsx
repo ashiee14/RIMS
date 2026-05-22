@@ -249,6 +249,22 @@ const handleDelete = async (id) => {
 
               <div className="btn-row">
                 <button
+                  onClick={() => navigate(`/ipr/${ipr.id}`)}
+                  style={{
+                    marginTop: 10,
+                    padding: "8px 14px",
+                    border: "none",
+                    borderRadius: 8,
+                    background: "#ffffff",
+                    color: "#2200a8",
+                    cursor: "pointer",
+                    fontWeight: "bold",
+                  }}
+                >
+                  View
+                </button>
+
+                <button
                   onClick={() => handleEditClick(ipr)}
                   style={{
                     marginTop: 10,
@@ -335,10 +351,10 @@ const handleDelete = async (id) => {
 
   .aurora-card:hover {
     transform: translateY(-5px);
-
+    
     box-shadow:
       0 8px 20px
-      rgba(0, 0, 0, 0.25);
+      rgb(255, 255, 255);
   }
 
   .aurora-card h3 {

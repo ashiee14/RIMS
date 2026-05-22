@@ -181,7 +181,7 @@ const handleUpdateEvent = async () => {
 
       setEditingId(null);
 
-      setFields({
+      setEditForm({
         title: "",
         event_type: "conference",
         start_date: "",
@@ -385,6 +385,25 @@ const handleUpdateEvent = async () => {
       </p>
 
       <button
+        onClick={() => navigate(`/events/${event.id}`)}
+        className="event-btn"
+        style={{
+          marginTop: 10,
+          marginRight: 10,
+          padding: "8px 14px",
+          border: "none",
+          borderRadius: 8,
+          background: "#ffffff",
+          color: "#2200a8",
+          cursor: "pointer",
+          fontWeight: "bold",
+        }}
+        
+      >
+        View 
+      </button>
+
+      <button
         onClick={() => handleEditClick(event)}
         className="event-btn event-edit-btn"
         style={{ marginTop: 10, marginRight: 10 }}
@@ -395,7 +414,7 @@ const handleUpdateEvent = async () => {
       <button
         onClick={() => handleDeleteEvent(event.id)}
         className="event-btn event-delete-btn"
-        style={{ marginTop: 10 }}
+        style={{ marginTop: 10, marginRight: 10 }}
       >
         Delete
       </button>
@@ -440,11 +459,12 @@ const handleUpdateEvent = async () => {
           padding: 20px;
           color: #ffffff;
           transition: transform 0.3s ease, box-shadow 0.3s ease;
+          justify-content: space-between;
         }
 
         .event-card:hover {
           transform: translateY(-5px);
-          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+          box-shadow: 0 8px 20px rgb(255, 255, 255);
         }
 
         /* Ensure Aurora stays in the background */

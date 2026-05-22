@@ -377,6 +377,17 @@ export const deleteProject = async (id) => {
   return res.data;
 };
 
+// FETCH project details by ID
+export const fetchProjectById = async (id) => {
+  try {
+    const response = await API.get(`/projects/${id}/`);
+    return response.data;
+  } catch (error) {
+    console.error("FETCH PROJECT DETAILS ERROR:", error);
+    throw error;
+  }
+};
+
 
 /* ────────────────────────────────────────────────────────────────
    Publications API

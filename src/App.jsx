@@ -9,12 +9,16 @@
   import MoreFeaturesPage from "./pages/MoreFeaturesPage";
 
   import PublicationsPage from "./pages/PublicationsPage";
+  import PublicationDetailsPage from "./pages/PublicationDetailsPage";
   import AwardsPage from "./pages/AwardsPage";
   import AwardDetailsPage from "./pages/AwardDetailsPage";
   import IPRPage from "./pages/IPRPage";
+  import IPRDetailsPage from "./pages/IPRDetailsPage";
   import BooksChaptersPage from "./pages/BooksChaptersPage";
   import EventsPage from "./pages/EventsPage";
+  import EventDetailsPage from "./pages/EventDetailsPage";
   import ResearchPage from "./pages/ResearchPage";
+  import ProjectDetailsPage from "./pages/ProjectDetailsPage";
   
   import AddAwardsPage from "./pages/AddAwardsPage";
   import AddIPRPage from "./pages/AddIPRPage";
@@ -46,12 +50,16 @@
           <Route path="/more-features" element={<MoreFeaturesPage />} key={location.key} />
 
           <Route path="/publications" element={<PublicationsPage />} key={location.key} />
+          
           <Route path="/awards" element={<AwardsPage />} key={location.key} />
           <Route path="/awards/:id" element={<AwardDetailsPage />} key={location.key} />
           <Route path="/ipr" element={<IPRPage />} key={location.key} />
+          <Route path="/ipr/:id" element={<IPRDetailsPage />} key={location.key} />
           <Route path="/books-chapters" element={<BooksChaptersPage />} key={location.key} />
           <Route path="/events" element={<EventsPage />} key={location.key} />
+          <Route path="/events/:id" element={<EventDetailsPage />} key={location.key} />
           <Route path="/research" element={<ResearchPage />} key={location.key} />
+          <Route path="/research/:id" element={<ProjectDetailsPage />} key={location.key} />
 
           <Route path="/add-awards" element={<AddAwardsPage />} key={location.key} />
           <Route path="/add-ipr" element={<AddIPRPage />} key={location.key} />
@@ -59,7 +67,8 @@
           <Route path="/add-book" element={<AddBookPage />} key={location.key} />
           <Route path="/add-publication" element={<AddPublicationsPage />} key={location.key} />
           <Route path="/add-research-project" element={<AddResearchProjectPage />} key={location.key} />
-          
+          <Route path="/publications/:id" element={<PublicationDetailsPage key={location.key} />}
+/>
           <Route path="/user-profile" element={<UserProfilePage />} key={location.key} />
           <Route path="/users/:id" element={<UserProfilePage />} />
           <Route path="/users" element={<UsersPage />} key={location.key} />

@@ -3,7 +3,8 @@ import Aurora from "../components/Aurora";
 import { COLORS } from "../styles/theme";
 import { ChevronDown } from "../components/Navbar";
 import { fetchPublications } from "../services/api";
-
+import { useNavigate } from "react-router-dom";
+  
 const {
   crimson: CRIMSON,
   border: BORDER,
@@ -49,6 +50,8 @@ const defaultSelections = {
 };
 
 const PublicationsPage = () => {
+  const navigate = useNavigate();
+
   const [pubs, setPubs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -309,6 +312,15 @@ const PublicationsPage = () => {
                   <p style={{ color: TEXT_HINT, margin: 0 }}>
                     {p.journal?.name || "Unknown Journal"} • {p.year}
                   </p>
+                
+                  <div className="pub-actions">
+                    <button
+                      className="view-button"
+                      onClick={() => navigate(`/publications/${p.id}`)}
+                    >
+                      View Details
+                    </button>
+                  </div>
                 </div>
               ))
             )}
@@ -479,6 +491,28 @@ const PublicationsPage = () => {
           padding: 48px 0;
           text-align: center;
           color: ${TEXT_MUTED};
+        }
+
+        .pub-actions {
+          margin-top: 18px;
+          display: flex;
+          justify-content: flex-end;
+        }
+
+        .view-button {
+          padding: 10px 18px;
+          border-radius: 999px;
+          border: none;
+          background: #ffffff;
+          color: #2200a8;
+          font-size: 12px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: 0.2s ease;
+        }
+
+        .view-button:hover {
+          transform: translateY(-1px);
         }
       `}</style>
     </div>

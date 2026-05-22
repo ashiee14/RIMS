@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import Aurora from "../components/Aurora";
 import { COLORS } from "../styles/theme";
 import { fetchProjects } from "../services/api";
+import { useNavigate } from "react-router-dom";
 // Mock data for development (to be replaced with real API calls)
 
 
@@ -33,6 +34,8 @@ const ResearchPage = ({ onNav }) => {
   const [sortDirection, setSortDirection] = useState("desc");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  const navigate = useNavigate();
 
   const sortOptions = [
     { value: "date", label: "Date" },
@@ -152,6 +155,7 @@ const ResearchPage = ({ onNav }) => {
 
         const formatted = projects.map((item, index) => ({
           id: index + 1,          
+          projectId: item.id,
           faculty: item.principal_investigator?.full_name || "N/A",
           dept: item.department?.name || "N/A",
           name: item.title || "N/A",
@@ -537,15 +541,19 @@ const ResearchPage = ({ onNav }) => {
                           </td>
                           <td style={{ padding: "14px 12px" }}>
                             <button
+                              onClick={() => navigate(`/research/${r.projectId}`)}
                               style={{
                                 border: "none",
-                                background: "none",
+                                background: CRIMSON,
+                                color: "#fff",
+                                padding: "6px 12px",
+                                borderRadius: 8,
                                 cursor: "pointer",
-                                color: "#22125a",
-                                fontSize: 18,
+                                fontSize: 12,
+                                fontWeight: 500,
                               }}
                             >
-                              ⋮
+                              View
                             </button>
                           </td>
                         </tr>
