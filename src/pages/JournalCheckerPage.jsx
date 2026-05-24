@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import Aurora from "../components/Aurora";
 import { COLORS, FONT } from "../styles/theme";
+import { checkJournal } from "../services/api";
 
 const {
   crimson: CRIMSON,
@@ -14,24 +15,44 @@ const JournalCheckerPage = () => {
   const [journal, setJournal] = useState("");
   const [result, setResult] = useState(null);
 
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
   // Adds Aurora styling to the root
   useEffect(() => {
     const root = document.getElementById("root");
     root.classList.add("aurora-root");
+
     return () => root.classList.remove("aurora-root");
   }, []);
 
-  const handleCheck = () => {
+  const handleCheck = async () => {
     if (!journal.trim()) return;
 
-    // Mock response
-    setResult({
-      indexed: "Scopus",
-      quartile: "Q1",
-      impactFactor: 4.2,
-      status: "Verified",
-    });
+    try {
+      setLoading(true);
+      setError("");
+      setResult(null);
+
+      const data = await checkJournal(journal);
+
+      console.log("JOURNAL RESPONSE:", data);
+
+      setResult(data);
+
+    } catch (err) {
+      console.error(err);
+
+      setError(
+        err.response?.data?.detail ||
+        "Journal not found"
+      );
+
+    } finally {
+      setLoading(false);
+    }
   };
+
 
   return (
     <div className="journal-container">
@@ -68,7 +89,7 @@ const JournalCheckerPage = () => {
         >
           <input
             type="text"
-            placeholder="Enter journal name..."
+            placeholder="Enter ISSN (e.g. 1234-5678)"
             value={journal}
             onChange={(e) => setJournal(e.target.value)}
             style={{
@@ -81,18 +102,51 @@ const JournalCheckerPage = () => {
           />
 
           <button
-            onClick={handleCheck}
-            style={{
-              background: CRIMSON,
-              color: "#fff",
-              border: "none",
-              padding: "10px 18px",
-              borderRadius: 8,
-              cursor: "pointer",
-            }}
-          >
-            Check Journal
-          </button>
+              onClick={handleCheck}
+            >
+              Check Journal
+            </button>
+
+            {loading && (
+              <p style={{ marginTop: 12 }}>
+                Checking journal...
+              </p>
+            )}
+
+            {error && (
+              <p
+                style={{
+                  marginTop: 12,
+                  color: "red",
+                }}
+              >
+                {error}
+              </p>
+            )}
+
+            {result && (
+              <div style={{ marginTop: 16 }}>
+                <p>
+                  <strong>Indexed In:</strong>
+                  {result.indexed_in}
+                </p>
+
+                <p>
+                  <strong>Quartile:</strong>
+                  {result.quartile}
+                </p>
+
+                <p>
+                  <strong>Impact Factor:</strong>
+                  {result.impact_factor}
+                </p>
+
+                <p style={{ color: TEAL }}>
+                  <strong>Status:</strong>
+                  {result.verified ? "Verified" : "Not Verified"}
+                </p>
+              </div>
+            )}
 
           {result && (
             <div style={{ marginTop: 16 }}>

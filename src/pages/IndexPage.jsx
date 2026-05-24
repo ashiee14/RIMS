@@ -23,6 +23,7 @@ import {
   getPublicationTrend,
   getCitationTotals,
   getColleges,
+  fetchMyDashboard,
 } from "../services/api";
 
 /* ────────────────────────────────────────────────────────────────
@@ -429,21 +430,182 @@ export default function IndexPage() {
 
   const navigate = useNavigate();
 
-  const { data: stats, loading: l1, error: e1 } =
-    useFetch(getOverviewStats);
-  const { data: quartile, loading: l2, error: e2 } =
-    useFetch(getQuartileData);
-  const { data: sdg, loading: l3, error: e3 } =
-    useFetch(getSDGData);
-  const { data: trend, loading: l4, error: e4 } =
-    useFetch(getPublicationTrend);
-  const { data: citations, loading: l5, error: e5 } =
-    useFetch(getCitationTotals);
-  const { data: colleges, loading: l6, error: e6 } =
-    useFetch(getColleges);
+  const {
+    data: dashboardData,
+    loading: dashboardLoading,
+    error: dashboardError,
+  } = useFetch(fetchMyDashboard);
+    
+  useEffect(() => {
+    if (dashboardData) {
+      console.log(
+        "REAL DASHBOARD RESPONSE:",
+        dashboardData
+      );
+    }
+  }, [dashboardData]);
 
-  const anyLoading = l1 || l2 || l3 || l4 || l5 || l6;
-  const anyError = e1 || e2 || e3 || e4 || e5 || e6;
+  const { data: stats } =
+    useFetch(getOverviewStats);
+
+  const { data: quartile } =
+    useFetch(getQuartileData);
+
+  const { data: sdg } =
+    useFetch(getSDGData);
+
+  const { data: trend } =
+    useFetch(getPublicationTrend);
+
+  const { data: citations } =
+    useFetch(getCitationTotals);
+
+  const {
+    data: colleges,
+    loading: collegesLoading,
+    error: collegesError,
+  } = useFetch(getColleges);
+
+  const anyLoading =  dashboardLoading ||  collegesLoading;
+
+  const anyError =  dashboardError ||  collegesError;
+
+  
+  const realStats = dashboardData
+  ? {
+      totalPublications:
+        dashboardData.publications?.total || 0,
+
+      indexedPublications:
+        dashboardData.publications?.total || 0,
+
+      retracted: 0,
+
+      impactFactor: {
+        average: 0,
+        cumulative: 0,
+      },
+
+      researchImpact: {
+        policy: 0,
+        news:
+          dashboardData.publications
+            ?.total_citations || 0,
+        wiki: 0,
+        fwci: 0,
+        pe: 0,
+      },
+
+      indexedIn: [
+        {
+          label: "Scopus",
+          value:
+            dashboardData.publications?.total || 0,
+          color: "#E8820C",
+        },
+        {
+          label: "Books",
+          value:
+            dashboardData.books?.total_books || 0,
+          color: "#2563EB",
+        },
+        {
+          label: "Projects",
+          value:
+            dashboardData.projects?.total || 0,
+          color: "#C8941A",
+        },
+      ],
+
+      hIndex: [
+        {
+          label: "h-index",
+          value:
+            dashboardData.research_indices
+              ?.h_index || 0,
+        },
+      ],
+
+      i10Index: [
+        {
+          label: "i10-index",
+          value:
+            dashboardData.research_indices
+              ?.i10_index || 0,
+        },
+      ],
+
+      top1Percentile:
+        dashboardData.awards?.total || 0,
+
+      top10Percentile:
+        dashboardData.ipr?.granted || 0,
+    }
+  : null;
+
+  const realQuartileData = dashboardData
+  ? [
+      {
+        label: "Q1",
+        value:
+          dashboardData.publications
+            ?.by_quartile?.Q1 || 0,
+        color: "#B22222",
+      },
+      {
+        label: "Q2",
+        value:
+          dashboardData.publications
+            ?.by_quartile?.Q2 || 0,
+        color: "#1D6B5E",
+      },
+      {
+        label: "Q3",
+        value:
+          dashboardData.publications
+            ?.by_quartile?.Q3 || 0,
+        color: "#C8941A",
+      },
+      {
+        label: "Q4",
+        value:
+          dashboardData.publications
+            ?.by_quartile?.Q4 || 0,
+        color: "#4A90D9",
+      },
+      {
+        label: "None",
+        value:
+          dashboardData.publications
+            ?.by_quartile?.unranked || 0,
+        color: "#888888",
+      },
+    ]
+  : [];
+
+  const realTrendData = dashboardData
+  ? (
+      dashboardData.publications?.by_year || []
+    ).map((item) => ({
+      year: item.year,
+      indexed: item.count,
+      crossref: item.count,
+      scopus: item.count,
+    }))
+  : [];
+
+  const realCitationTotals = dashboardData
+  ? {
+      crossref:
+        dashboardData.publications
+          ?.total_citations || 0,
+
+      scopus:
+        dashboardData.publications
+          ?.total_citations || 0,
+    }
+  : null;
+
 
   if (anyLoading) return <LoadingSpinner />;
   if (anyError) return <ErrorBanner message={anyError} />;
@@ -469,12 +631,22 @@ export default function IndexPage() {
           Overview
         </h1>
 
-        <TopStatsRow stats={stats} />
-        <IndexedRow stats={stats} />
+        <TopStatsRow stats={realStats || stats} />
+        <IndexedRow stats={realStats || stats} />
         <ChartsRow
-          trendData={trend}
-          citationTotals={citations}
-          quartileData={quartile}
+          trendData={
+            realTrendData.length
+              ? realTrendData
+              : trend
+          }
+          citationTotals={
+            realCitationTotals || citations
+          }
+          quartileData={
+            realQuartileData.length
+              ? realQuartileData
+              : quartile
+          }
           sdgData={sdg}
         />
 

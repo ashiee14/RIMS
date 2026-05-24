@@ -546,26 +546,128 @@ export const createChapter = async (
   bookId,
   payload
 ) => {
-  const token =
-    localStorage.getItem("access_token");
+  const res = await API.post(
+    `/books/${bookId}/chapters/create/`,
+    payload
+  );
 
-  const response = await fetch(
-    `/api/books/${bookId}/chapters/create/`,
+  return res.data;
+};
+
+
+/* ────────────────────────────────────────────────────────────────
+   Dashboard API
+──────────────────────────────────────────────────────────────── */
+
+// GET logged-in user dashboard
+export const fetchMyDashboard = async () => {
+  const res = await API.get("/dashboard/me/");
+  return res.data;
+};
+
+// GET college dashboard
+export const fetchCollegeDashboard = async () => {
+  const res = await API.get("/dashboard/college/");
+  return res.data;
+};
+
+// GET dashboard by user ID
+export const fetchUserDashboard = async (id) => {
+  const res = await API.get(`/dashboard/user/${id}/`);
+  return res.data;
+};
+
+/* ────────────────────────────────────────────────────────────────
+   Journal Check API
+──────────────────────────────────────────────────────────────── */
+
+export const checkJournal = async (issn) => {
+  const res = await API.get(
+    "/publications/journal/check/",
     {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(payload),
+      params: { issn },
     }
   );
 
-  if (!response.ok) {
-    throw new Error("Failed to create chapter");
-  }
-
-  return response.json();
+  return res.data;
 };
+
+/* ────────────────────────────────────────────────────────────────
+   ORCID API
+──────────────────────────────────────────────────────────────── */
+
+// Preview ORCID profile
+export const previewORCID = async () => {
+  const res = await API.get(
+    "/users/orcid/preview/"
+  );
+
+  return res.data;
+};
+
+// Link ORCID account
+export const linkORCID = async (data) => {
+  const res = await API.post(
+    "/users/orcid/link/",
+    data
+  );
+
+  return res.data;
+};
+
+/* ────────────────────────────────────────────────────────────────
+   Extract APIs
+──────────────────────────────────────────────────────────────── */
+
+// Extract Book Metadata
+export const extractBook = async (formData) => {
+  const res = await API.post(
+    "/books/extract/",
+    formData,
+    {
+      headers: {
+        "Content-Type":
+          "multipart/form-data",
+      },
+    }
+  );
+
+  return res.data;
+};
+
+// Extract IPR Metadata
+export const extractIPR = async (formData) => {
+  const res = await API.post(
+    "/ipr/extract/",
+    formData,
+    {
+      headers: {
+        "Content-Type":
+          "multipart/form-data",
+      },
+    }
+  );
+
+  return res.data;
+};
+
+// Extract Project Metadata
+export const extractProject = async (
+  formData
+) => {
+  const res = await API.post(
+    "/projects/extract/",
+    formData,
+    {
+      headers: {
+        "Content-Type":
+          "multipart/form-data",
+      },
+    }
+  );
+
+  return res.data;
+};
+
 
 export default API;
