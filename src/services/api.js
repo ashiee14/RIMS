@@ -542,5 +542,30 @@ export const deleteBook = async (id) => {
   return res.data;
 };
 
+export const createChapter = async (
+  bookId,
+  payload
+) => {
+  const token =
+    localStorage.getItem("access_token");
+
+  const response = await fetch(
+    `/api/books/${bookId}/chapters/create/`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to create chapter");
+  }
+
+  return response.json();
+};
 
 export default API;

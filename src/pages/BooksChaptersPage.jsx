@@ -2,11 +2,6 @@ import { useEffect, useState } from "react";
 import Aurora from "../components/Aurora";
 import { COLORS } from "../styles/theme";
 import { useNavigate } from "react-router-dom";
-import {
-  fetchBooks,
-  updateBook,
-  deleteBook,
-} from "../services/api";
 
 const {
   crimson: CRIMSON,
@@ -338,6 +333,13 @@ const handleUpdateBook = async () => {
 
                   <div className="btn-row">
                     <button
+                      onClick={() => navigate(`/books/${book.id}`)}
+                      className="action-btn save-btn"
+                    >
+                      View
+                    </button>
+                    
+                    <button
                       onClick={() => handleEditBook(book)}
                       className="action-btn edit-btn"
                     >
@@ -410,7 +412,7 @@ const handleUpdateBook = async () => {
 
         box-shadow:
           0 8px 20px
-          rgba(0, 0, 0, 0.25);
+          rgb(255, 255, 255);
       }
 
       .book-card h3 {
