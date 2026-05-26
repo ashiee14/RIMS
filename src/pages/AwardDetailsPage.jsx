@@ -23,7 +23,7 @@ const AwardDetailsPage = () => {
     title: "",
     awarding_agency: "",
     award_date: "",
-    recipient: "",
+    recipient_id: null,
   });
 
   useEffect(() => {
@@ -53,8 +53,7 @@ const AwardDetailsPage = () => {
             data.awarding_agency || "",
           award_date:
             data.award_date || "",
-          recipient:
-            data.recipient?.full_name || "",
+          recipient_id: data.recipient?.id || null,
         });
 
       } catch (error) {
@@ -126,9 +125,12 @@ const AwardDetailsPage = () => {
                 `Bearer ${token}`,
             },
 
-            body: JSON.stringify(
-              editForm
-            ),
+            body: JSON.stringify({
+              title: editForm.title,
+              awarding_agency: editForm.awarding_agency,
+              award_date: editForm.award_date,
+              recipient_id: editForm.recipient_id,
+            }),
           }
         );
 
@@ -235,15 +237,8 @@ const AwardDetailsPage = () => {
 
                 <input
                   type="text"
-                  placeholder="Recipient"
-                  value={editForm.recipient}
-                  onChange={(e) =>
-                    setEditForm({
-                      ...editForm,
-                      recipient:
-                        e.target.value,
-                    })
-                  }
+                  value={award.recipient?.full_name || ""}
+                  disabled
                 />
 
                 <div className="btn-row">

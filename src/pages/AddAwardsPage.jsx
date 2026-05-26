@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Aurora from "../components/Aurora";
 import { COLORS } from "../styles/theme";
+import { jwtDecode } from "jwt-decode"; //added for decoding JWT
 
 const {
   crimson: CRIMSON,
@@ -24,20 +25,39 @@ const AddAwardsPage = ({ onNav }) => {
 
   const [previewUrl, setPreviewUrl] = useState("");
 
+  const [fileType, setFileType] = useState("");
+
   const [fields, setFields] = useState({
     faculty: "",
-    dept: "",
     title: "",
     date: "",
     agency: "",
-    location: "",
-    level: "",
-    category: "",
-    description: "",
   });
-    
+  
+
   const update = (k, v) => setFields(p => ({ ...p, [k]: v }));
   
+  //added
+  const getUserIdFromToken = () => {
+      const token = localStorage.getItem("access_token");
+      if (!token) return null;
+
+      try {
+        const decoded = jwtDecode(token);
+        return decoded.user_id || decoded.id;
+      } catch (err) {
+        console.error("Invalid token:", err);
+        return null;
+      }
+    };
+
+    const [userId, setUserId] = useState(null);
+
+    useEffect(() => {
+      const id = getUserIdFromToken();
+      setUserId(id);
+    }, []);
+
   useEffect(() => {
     const root = document.getElementById("root");
 
@@ -46,6 +66,14 @@ const AddAwardsPage = ({ onNav }) => {
     return () =>
       root.classList.remove("aurora-root");
   }, []);
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
   
   const handleCertificateUpload = async () => {
       if (!selectedFile) {
@@ -84,8 +112,8 @@ const AddAwardsPage = ({ onNav }) => {
             ...prev,
             title: data.title || "",
             agency: data.awarding_agency || "",
-            faculty: data.recipient_name || "",
             date: data.award_date || "",
+            faculty: data.recipient_name || "",
           }));
 
           alert("Certificate uploaded and details extracted!");
@@ -109,7 +137,7 @@ const AddAwardsPage = ({ onNav }) => {
       title: fields.title,
       awarding_agency: fields.agency,
       award_date: fields.date,
-      recipient_id: 1,
+      recipient_id: userId,
       certificate_id: certificateId,
     };
 
@@ -176,16 +204,29 @@ const AddAwardsPage = ({ onNav }) => {
 
         <div className="upload-preview">
           {previewUrl ? (
-            <img
-              src={previewUrl}
-              alt="Certificate Preview"
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-                borderRadius: 10,
-              }}
-            />
+            fileType.startsWith("image/") ? (
+              <img
+                src={previewUrl}
+                alt="Preview"
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  borderRadius: 10,
+                }}
+              />
+            ) : (
+              <iframe
+                src={previewUrl}
+                title="PDF Preview"
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  border: "none",
+                  borderRadius: 10,
+                }}
+              />
+            )
           ) : (
             <div>
               <div
@@ -217,8 +258,8 @@ const AddAwardsPage = ({ onNav }) => {
 
             if (file) {
               setSelectedFile(file);
-
               setPreviewUrl(URL.createObjectURL(file));
+              setFileType(file.type);
             }
           }}
           style={{ marginBottom: 14 }}
@@ -250,14 +291,6 @@ const AddAwardsPage = ({ onNav }) => {
           }
         />
 
-        <input
-          type="text"
-          placeholder="Department"
-          value={fields.dept}
-          onChange={(e) =>
-            update("dept", e.target.value)
-          }
-        />
 
         <input
           type="text"
@@ -285,72 +318,6 @@ const AddAwardsPage = ({ onNav }) => {
           }
         />
 
-        <input
-          type="text"
-          placeholder="Location"
-          value={fields.location}
-          onChange={(e) =>
-            update("location", e.target.value)
-          }
-        />
-
-        <select
-          value={fields.level}
-          onChange={(e) =>
-            update("level", e.target.value)
-          }
-        >
-          <option value="">
-            Select Level
-          </option>
-
-          <option>
-            International
-          </option>
-
-          <option>National</option>
-
-          <option>State</option>
-
-          <option>Institutional</option>
-        </select>
-
-        <select
-          value={fields.category}
-          onChange={(e) =>
-            update(
-              "category",
-              e.target.value
-            )
-          }
-        >
-          <option value="">
-            Select Category
-          </option>
-
-          <option>Best Paper</option>
-
-          <option>
-            Best Researcher
-          </option>
-
-          <option>
-            Excellence Award
-          </option>
-
-          <option>Other</option>
-        </select>
-
-        <textarea
-          placeholder="Description"
-          value={fields.description}
-          onChange={(e) =>
-            update(
-              "description",
-              e.target.value
-            )
-          }
-        />
 
         <div className="btn-row">
           <button

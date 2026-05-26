@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import Aurora from "../components/Aurora";
 import { COLORS } from "../styles/theme";
+import { createPublication } from "../services/api";
 
 const {
   crimson: CRIMSON,
@@ -23,6 +24,9 @@ const AddPublicationsPage = () => {
     doi: "",
   });
 
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+
   useEffect(() => {
     const root = document.getElementById("root");
     root.classList.add("aurora-root");
@@ -33,10 +37,81 @@ const AddPublicationsPage = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Publication Added:", formData);
-    alert("Publication added successfully!");
+
+    try {
+      setSubmitting(true);
+      setError("");
+
+      // Convert frontend fields
+      // into backend serializer format
+      const payload = {
+        title: formData.title,
+
+        // backend likely expects array
+        author_names: formData.authors
+          .split(",")
+          .map((a) => a.trim())
+          .filter(Boolean),
+
+        journal: formData.journal,
+
+        year: Number(formData.year),
+
+        quartile: formData.quartile,
+
+        impact_factor: formData.impactFactor
+          ? Number(formData.impactFactor)
+          : null,
+
+        indexed_in: formData.indexedIn
+          .split(",")
+          .map((i) => i.trim())
+          .filter(Boolean),
+
+        doi: formData.doi,
+      };
+
+      console.log("SUBMITTING:", payload);
+
+      const response =
+        await createPublication(payload);
+
+      console.log(
+        "PUBLICATION CREATED:",
+        response
+      );
+
+      alert("Publication added successfully!");
+
+      // Reset form
+      setFormData({
+        title: "",
+        authors: "",
+        journal: "",
+        year: "",
+        quartile: "",
+        impactFactor: "",
+        indexedIn: "",
+        doi: "",
+      });
+
+    } catch (err) {
+      console.error(err);
+
+      console.log(
+        "BACKEND ERROR:",
+        err.response?.data
+      );
+
+      setError(
+        err.response?.data?.detail ||
+        "Failed to create publication."
+      );
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -70,10 +145,22 @@ const AddPublicationsPage = () => {
             <input type="number" step="0.01" name="impactFactor" placeholder="Impact Factor" onChange={handleChange} />
             <input type="text" name="indexedIn" placeholder="Indexed In (Scopus, WoS, PubMed)" onChange={handleChange} />
           </div>
-
-          <button type="submit" className="submit-btn">
-            Add Publication
+          {error && (
+            <div className="error-text">
+              {error}
+            </div>
+          )}
+          
+          <button
+            type="submit"
+            className="submit-btn"
+            disabled={submitting}
+          >
+            {submitting
+              ? "Adding..."
+              : "Add Publication"}
           </button>
+
         </form>
       </div>
 
@@ -114,6 +201,11 @@ const AddPublicationsPage = () => {
           border: 1px solid ${BORDER};
           font-size: 14px;
           color: ${TEXT};
+        }
+
+        .error-text {
+          color: #ffb3b3;
+          font-size: 13px;
         }
 
         .grid-2 {

@@ -438,6 +438,57 @@ export const syncPublications = async () => {
   return res.data;
 };
 
+// CREATE publication
+export const createPublication = async (data) => {
+  const res = await API.post(
+    "/publications/",
+    data
+  );
+
+  return res.data;
+};
+
+// UPDATE publication
+export const updatePublication = async (
+  id,
+  data
+) => {
+  const res = await API.patch(
+    `/publications/${id}/`,
+    data
+  );
+
+  return res.data;
+};
+
+// DELETE publication
+export const deletePublication = async (
+  id
+) => {
+  const res = await API.delete(
+    `/publications/${id}/`
+  );
+
+  return res.data;
+};
+
+// UPLOAD publication certificate/pdf
+export const uploadPublicationCertificate =
+  async (formData) => {
+    const res = await API.post(
+      "/publications/upload-certificate/",
+      formData,
+      {
+        headers: {
+          "Content-Type":
+            "multipart/form-data",
+        },
+      }
+    );
+
+    return res.data;
+  };
+
 
 /* ────────────────────────────────────────────────────────────────
    IPR API
