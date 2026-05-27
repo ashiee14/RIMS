@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
+import { googleLogin } from "../services/api";
 
 const AuthContext = createContext();
 
@@ -34,7 +34,7 @@ const [user, setUser] = useState(storedUser || null);
 }, []);
 
 
-  const login = async (googleToken) => {
+  /*const login = async (googleToken) => {
     try {
       const API = axios.create({
         baseURL: "/api",
@@ -72,8 +72,31 @@ const [user, setUser] = useState(storedUser || null);
       console.error('Login failed:', error);
       throw error;
     }
-  };
+  };*/
 
+  const login = async (googleToken) => {
+    try {
+      const payload = JSON.parse(atob(googleToken.split('.')[1]));
+
+      const data = await googleLogin(googleToken, {
+        name: payload.name,
+        email: payload.email,
+        picture: payload.picture,
+      });
+
+      setUser({
+        id: data.user?.id,
+        name: payload.name,
+        email: payload.email,
+        picture: payload.picture,
+      });
+
+    } catch (error) {
+      console.error("Login failed:", error);
+      throw error;
+    }
+  };
+  
   const logout = () => {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');

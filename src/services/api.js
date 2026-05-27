@@ -346,6 +346,13 @@ export const getColleges = async () => {
   ];
 };
 
+/* ────────────────────────────────────────────────────────────────
+   Create user API
+──────────────────────────────────────────────────────────────── */
+export const createUser = async (data) => {
+  const res = await API.post("/users/", data);
+  return res.data;
+};
 
 /* ────────────────────────────────────────────────────────────────
    Research Projects API
