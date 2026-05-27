@@ -23,7 +23,7 @@ import {
   getPublicationTrend,
   getCitationTotals,
   getColleges,
-  fetchMyDashboard,
+  fetchCollegeDashboard,
 } from "../services/api";
 
 /* ────────────────────────────────────────────────────────────────
@@ -434,7 +434,7 @@ export default function IndexPage() {
     data: dashboardData,
     loading: dashboardLoading,
     error: dashboardError,
-  } = useFetch(fetchMyDashboard);
+  } = useFetch(fetchCollegeDashboard);
     
   useEffect(() => {
     if (dashboardData) {

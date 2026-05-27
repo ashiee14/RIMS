@@ -28,7 +28,7 @@ const AddAwardsPage = ({ onNav }) => {
   const [fileType, setFileType] = useState("");
 
   const [fields, setFields] = useState({
-    faculty: "",
+    recipient_name: "",
     title: "",
     date: "",
     agency: "",
@@ -113,7 +113,7 @@ const AddAwardsPage = ({ onNav }) => {
             title: data.title || "",
             agency: data.awarding_agency || "",
             date: data.award_date || "",
-            faculty: data.recipient_name || "",
+            recipient_name: data.recipient_name || "",
           }));
 
           alert("Certificate uploaded and details extracted!");
@@ -284,10 +284,10 @@ const AddAwardsPage = ({ onNav }) => {
       >
         <input
           type="text"
-          placeholder="Faculty Name"
-          value={fields.faculty}
+          placeholder="Recipient Name"
+          value={fields.recipient_name}
           onChange={(e) =>
-            update("faculty", e.target.value)
+            update("recipient_name", e.target.value)
           }
         />
 

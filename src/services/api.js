@@ -593,18 +593,28 @@ export const deleteBook = async (id) => {
   return res.data;
 };
 
-export const createChapter = async (
-  bookId,
-  payload
-) => {
+// CREATE chapter
+export const createChapter = async (bookId, payload) => {
+  const normalizedPayload = {
+    title: payload.title,
+    chapter_number: Number(payload.chapter_number),
+    content: payload.content || "",
+  };
+
   const res = await API.post(
     `/books/${bookId}/chapters/create/`,
-    payload
+    normalizedPayload
   );
 
   return res.data;
 };
+ 
+// GET single chapter
+export const fetchChapterById = async (id) => {
+  const res = await API.get(`/chapters/${id}/`);
 
+  return res.data?.data || res.data?.chapter || res.data;
+};
 
 /* ────────────────────────────────────────────────────────────────
    Dashboard API
@@ -648,12 +658,11 @@ export const checkJournal = async (issn) => {
 ──────────────────────────────────────────────────────────────── */
 
 // Preview ORCID profile
-export const previewORCID = async () => {
-  const res = await API.get(
-    "/users/orcid/preview/"
+export const previewORCID = async (orcidId) => {
+  const response = await API.get(
+    `/users/orcid/preview/?orcid_id=${orcidId}`
   );
-
-  return res.data;
+  return response.data;
 };
 
 // Link ORCID account

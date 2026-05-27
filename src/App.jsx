@@ -16,9 +16,11 @@
   import IPRDetailsPage from "./pages/IPRDetailsPage";
   import BooksChaptersPage from "./pages/BooksChaptersPage";
   import BookDetailsPage from "./pages/BookDetailsPage";
+  import ChapterDetailsPage from "./pages/ChapterDetailsPage";
   import EventsPage from "./pages/EventsPage";
   import EventDetailsPage from "./pages/EventDetailsPage";
   import ResearchPage from "./pages/ResearchPage";
+  import EditResearchProjectPage from "./pages/EditResearchProjectPage";
   import ProjectDetailsPage from "./pages/ProjectDetailsPage";
   
   import AddAwardsPage from "./pages/AddAwardsPage";
@@ -59,9 +61,11 @@
           <Route path="/ipr/:id" element={<IPRDetailsPage />} key={location.key} />
           <Route path="/books-chapters" element={<BooksChaptersPage />} key={location.key} />
           <Route path="/books/:id" element={<BookDetailsPage />} key={location.key} />
+          <Route path="/chapters/:id" element={<ChapterDetailsPage />} key={location.key} />
           <Route path="/events" element={<EventsPage />} key={location.key} />
           <Route path="/events/:id" element={<EventDetailsPage />} key={location.key} />
           <Route path="/research" element={<ResearchPage />} key={location.key} />
+          <Route path="/research/edit/:id" element={<EditResearchProjectPage />} key={location.key} />
           <Route path="/research/:id" element={<ProjectDetailsPage />} key={location.key} />
 
           <Route path="/add-awards" element={<AddAwardsPage />} key={location.key} />

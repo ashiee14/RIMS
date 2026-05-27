@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Aurora from "../components/Aurora";
 import { COLORS } from "../styles/theme";
+import { addBook } from "../services/api";//added
 
 const {
   crimson: CRIMSON,
@@ -44,53 +45,24 @@ const AddBookPage = () => {
     e.preventDefault();
 
     try {
-      const token =
-        localStorage.getItem(
-          "access_token"
-        );
-
       const payload = {
         ...formData,
-        year: Number(formData.year),
+        year: formData.year ? Number(formData.year) : null,   
         pages: formData.pages
           ? Number(formData.pages)
           : null,
       };
 
-      const response = await fetch(
-        "/api/books/create/",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type":
-              "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(payload),
-        }
-      );
+      await addBook(payload);
 
-      const data =
-        await response.json();
+      alert("Book created successfully!");
 
-      console.log(data);
-
-      if (response.ok) {
-        alert(
-          "Book created successfully!"
-        );
-
-        navigate("/books-chapters");
-          } else {
-        alert(
-          "Failed to create book"
-        );
-      }
+      navigate("/books-chapters");
 
     } catch (error) {
       console.error(error);
 
-      alert("Error creating book");
+      alert("Failed to create book");
     }
   };
 

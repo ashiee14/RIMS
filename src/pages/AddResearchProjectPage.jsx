@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import Aurora from "../components/Aurora";
 import { COLORS } from "../styles/theme";
-import { createProject } from "../services/api";
+import { createProject, extractProject } from "../services/api";
 import { useNavigate } from "react-router-dom";
 
 const {
@@ -15,6 +15,8 @@ const {
 const AddResearchProjectPage = () => {
   const navigate = useNavigate();
   
+  const [extracting, setExtracting] = useState(false);
+
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -34,6 +36,39 @@ const AddResearchProjectPage = () => {
 
     const handleChange = (e) => {
       setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    const handleFileUpload = async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      try {
+        setExtracting(true);
+
+        const data = await extractProject(formData);
+
+        console.log("EXTRACTED:", data);
+
+        // 🔥 AUTO-FILL FORM
+        setFormData((prev) => ({
+          ...prev,
+          title: data.title || prev.title,
+          amount: data.amount || prev.amount,
+          start_date: data.start_date || prev.start_date,
+          end_date: data.end_date || prev.end_date,
+        }));
+
+        alert("Data extracted successfully!");
+
+      } catch (error) {
+        console.error("EXTRACT ERROR:", error);
+        alert("Failed to extract data from file");
+      } finally {
+        setExtracting(false);
+      }
     };
 
     const handleSubmit = async (e) => {
@@ -85,6 +120,21 @@ const AddResearchProjectPage = () => {
           </p>
 
           <form onSubmit={handleSubmit} className="form-card">
+
+            <div style={{ marginBottom: "12px" }}>
+              <label style={{ color: TEXT_MUTED }}>
+                Upload Grant Document (Auto-fill)
+              </label>
+
+              <input
+                type="file"
+                accept=".pdf,image/*"
+                onChange={handleFileUpload}
+              />
+
+              {extracting && <p>Extracting data...</p>}
+            </div>
+
 
             <input
               type="text"
@@ -191,7 +241,8 @@ const AddResearchProjectPage = () => {
           }
 
           .form-card input,
-          .form-card select {
+          .form-card select,
+          .form-card textarea {
             padding: 10px;
             border-radius: 8px;
             border: 1px solid ${BORDER};

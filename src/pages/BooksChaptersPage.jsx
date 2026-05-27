@@ -2,6 +2,12 @@ import { useEffect, useState } from "react";
 import Aurora from "../components/Aurora";
 import { COLORS } from "../styles/theme";
 import { useNavigate } from "react-router-dom";
+//added
+import {
+  fetchBooks,
+  deleteBook,
+  updateBook,
+} from "../services/api";
 
 const {
   crimson: CRIMSON,
@@ -33,94 +39,77 @@ const BooksChaptersPage = () => {
       pages: "",
     });
   
-useEffect(() => {
-  const loadBooks = async () => {
-    try {
-      setLoading(true);
+  useEffect(() => {
+    const loadBooks = async () => {
+      try {
+        setLoading(true);
 
-      const token =
-        localStorage.getItem("access_token");
+        let allBooks = [];
 
-      let allBooks = [];
+        let page = 1;
 
-      let nextUrl = "/api/books/";
+        while (true) {
 
-      while (nextUrl) {
-        const response = await fetch(nextUrl, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+          const data = await fetchBooks({
+            page,
+          });
 
-        const data = await response.json();
+          console.log("BOOK PAGE:", data);
 
-        console.log("BOOK PAGE:", data);
+          allBooks = [
+            ...allBooks,
+            ...(data.results || []),
+          ];
 
-        allBooks = [
-          ...allBooks,
-          ...(data.results || []),
-        ];
+          if (!data.next) {
+            break;
+          }
 
-        nextUrl = data.next
-          ? data.next.replace(
-              "http://",
-              "https://"
-            )
-          : null;
+          page++;
+        }
+
+        const sortedBooks = allBooks.sort(
+          (a, b) => b.id - a.id
+        );
+
+        setBooks(sortedBooks);
+
+      } catch (error) {
+
+        console.error("BOOKS ERROR:", error);
+
+        setBooks([]);
+
+      } finally {
+
+        setLoading(false);
       }
+    };
 
-      const sortedBooks = allBooks.sort(
-        (a, b) => b.id - a.id
-      );
-
-      setBooks(sortedBooks);
-
-    } catch (error) {
-      console.error("BOOKS ERROR:", error);
-
-      setBooks([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  loadBooks();
-}, []);
+    loadBooks();
+  }, []);
 
 
 
-const handleDeleteBook = async (id) => {
-  try {
-    const token = localStorage.getItem("access_token");
+  const handleDeleteBook = async (id) => {
+    try {
+      console.log("DELETING BOOK:", id);
 
-    console.log("DELETING BOOK:", id);
+      await deleteBook(id);
 
-    const response = await fetch(`/api/books/${id}/`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    console.log("DELETE STATUS:", response.status);
-
-    if (response.status === 204) {
       alert("Book deleted!");
 
       setBooks((prev) =>
         prev.filter((book) => book.id !== id)
       );
-    } else {
-      const data = await response.json();
-      console.log("DELETE ERROR:", data);
+
+    } catch (error) {
+      console.error("DELETE BOOK ERROR:", error);
 
       alert("Failed to delete book");
     }
+  };
 
-  } catch (error) {
-    console.error("DELETE BOOK ERROR:", error);
-  }
-};
 
 const handleEditBook = (book) => {
   setEditingBookId(book.id);
@@ -136,7 +125,6 @@ const handleEditBook = (book) => {
 
 const handleUpdateBook = async () => {
   try {
-    const token = localStorage.getItem("access_token");
 
     const payload = {
       title: editForm.title,
@@ -150,24 +138,14 @@ const handleUpdateBook = async () => {
 
     console.log("UPDATING BOOK:", payload);
 
-    const response = await fetch(
-      `/api/books/${editingBookId}/`,
-      {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      }
+    const data = await updateBook(
+      editingBookId,
+      payload
     );
 
-    const data = await response.json();
-
-    console.log("UPDATE STATUS:", response.status);
     console.log("UPDATE DATA:", data);
 
-    if (response.ok) {
+    if (data) {
       alert("Book updated!");
 
       setBooks((prev) =>
@@ -205,6 +183,13 @@ const handleUpdateBook = async () => {
         blend={0.5}
       />
 
+      <button
+          onClick={() => navigate("/dashboard")}
+          className="back-btn"
+        >
+          ← Back
+      </button>
+      
       <div className="aurora-content" style={{ maxWidth: 1000 }}>
         <h1 style={{ color: CRIMSON }}>Books & Chapters</h1>
         <p style={{ color: TEXT_MUTED }}>
@@ -563,6 +548,16 @@ const handleUpdateBook = async () => {
 
         .btn-row {
           justify-content: center;
+        }
+
+        .back-btn {
+          border: none;
+          padding: 10px 16px;
+          border-radius: 8px;
+          cursor: pointer;
+          color: white;
+          font-weight: bold;
+          margin-top: 12px;
         }
       }
     `}</style>

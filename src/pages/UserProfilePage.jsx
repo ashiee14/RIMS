@@ -7,7 +7,8 @@ import {
   previewORCID,
   linkORCID,
 } from "../services/api";
-
+import { fetchMyPublications } from "../services/api";
+import { searchPublications } from "../services/api";
 
 const API_BASE = "https://rims-api.prerna.sh";
 
@@ -69,6 +70,7 @@ const UserProfilePage = () => {
   const [orcidInput, setOrcidInput] =
     useState("");
 
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
       const root = document.getElementById("root");
@@ -88,7 +90,20 @@ const UserProfilePage = () => {
       return () => root.classList.remove("aurora-root");
     }, [id]);
   
-  
+      const handleSearch = async () => {
+      try {
+        const res = await searchPublications(
+          searchQuery,
+          filterType
+        );
+
+        setPubs(res.results || res);
+      } catch (err) {
+        console.error("Search failed", err);
+      }
+    };
+
+
   const fetchProfile = async () => {
     try {
       setError("");
@@ -129,17 +144,11 @@ const UserProfilePage = () => {
       setProfile(fetchedUser);
 
       // PUBLICATIONS
-      if (fetchedUser?.orcid_id) {
-        const pubRes = await axios.get(
-          `${API_BASE}/api/publications/researcher/${fetchedUser.orcid_id}/`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
 
-        setPubs(pubRes.data.results || []);
+        // PUBLICATIONS (USE /mine/ INSTEAD OF ORCID)
+        const pubRes = await fetchMyPublications();
+
+        setPubs(pubRes.results || pubRes);
 
       
               // PUBLICATION STATS
@@ -189,23 +198,24 @@ const UserProfilePage = () => {
       setAwards(awardsRes.data.results || []);
 
       // ORCID PREVIEW
-      try {
-        const previewData =
-          await previewORCID();
+        if (fetchedUser?.orcid_id) {
+          try {
+            const previewData =
+              await previewORCID(fetchedUser.orcid_id);
 
-        console.log(
-          "ORCID PREVIEW:",
-          previewData
-        );
+            console.log(
+              "ORCID PREVIEW:",
+              previewData
+            );
 
-        setOrcidPreview(previewData);
-      } catch (previewErr) {
-        console.log(
-          "ORCID preview unavailable",
-          previewErr
-        );
-      }
-      }
+            setOrcidPreview(previewData);
+          } catch (previewErr) {
+            console.log(
+              "ORCID preview unavailable",
+              previewErr
+            );
+          }
+        }
 
     } 
     catch (err) {
@@ -297,47 +307,7 @@ const UserProfilePage = () => {
     );
   }
 
-  const filteredPubs = pubs
-    .filter((p) => {
-      // Publication Type Filter
-      if (
-        filterType !== "all" &&
-        p.publication_type !== filterType
-      ) {
-        return false;
-      }
-
-      // Open Access Filter
-      if (
-        showOpenAccess &&
-        !p.is_open_access
-      ) {
-        return false;
-      }
-
-      return true;
-    })
-    .sort((a, b) => {
-      // Latest First
-      if (sortBy === "latest") {
-        return (b.year || 0) - (a.year || 0);
-      }
-
-      // Oldest First
-      if (sortBy === "oldest") {
-        return (a.year || 0) - (b.year || 0);
-      }
-
-      // Most Citations
-      if (sortBy === "citations") {
-        return (
-          (b.cited_by_count || 0) -
-          (a.cited_by_count || 0)
-        );
-      }
-
-      return 0;
-    });
+  
 
   return (
     <div style={{ maxWidth: 1100, margin: "0 auto", padding: "28px 24px" }}>
@@ -594,15 +564,18 @@ const UserProfilePage = () => {
                   justifyContent: "space-between",
                   alignItems: "center",
                   marginBottom: 12,
+                  gap: 10,
+                  flexWrap: "wrap",
                 }}
               >
+                
                 <span
                   style={{
                     fontSize: 13,
                     color: TEXT_MUTED,
                   }}
                 >
-                  Publications ({filteredPubs.length} results)
+                  Publications ({pubs.length} results)
                 </span>
 
                 {/* your existing sort/filter UI stays here */}
@@ -690,7 +663,7 @@ const UserProfilePage = () => {
               </div>
 
               {/* your existing publications rendering stays here */}
-              {filteredPubs.length === 0 && (
+              {pubs.length === 0 && (
                   <div
                     style={{
                       padding: 30,
@@ -704,7 +677,7 @@ const UserProfilePage = () => {
                   </div>
                 )}
 
-                {filteredPubs.map((pub, index) => (
+                {pubs.map((pub, index) => (
                   <div
                     key={pub.id || index}
                     style={{

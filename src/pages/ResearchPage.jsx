@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import Aurora from "../components/Aurora";
 import { COLORS } from "../styles/theme";
-import { fetchProjects } from "../services/api";
+import { fetchProjects, deleteProject } from "../services/api";
 import { useNavigate } from "react-router-dom";
 // Mock data for development (to be replaced with real API calls)
 
@@ -48,6 +48,10 @@ const ResearchPage = ({ onNav }) => {
 
   const filteredRows = rows;
 
+  const handleEdit = (id) => {
+    navigate(`/research/edit/${id}`);
+  };
+
   const handleFilterChange = (key, value) => {
     setSidebarFilters((prev) => ({
       ...prev,
@@ -66,6 +70,23 @@ const ResearchPage = ({ onNav }) => {
     setSortBy("date");
     setSortDirection("desc");
   };
+
+  const handleDelete = async (id) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this project?");
+    if (!confirmDelete) return;
+
+    try {
+      await deleteProject(id);
+
+      // Refresh list after delete
+      setRows((prev) => prev.filter((p) => p.projectId !== id));
+
+    } catch (error) {
+      console.error("Delete failed:", error);
+      alert("Failed to delete project");
+    }
+  };
+
 
   // Adds aurora styling to the root
   useEffect(() => {
@@ -554,6 +575,34 @@ const ResearchPage = ({ onNav }) => {
                               }}
                             >
                               View
+                            </button>
+                            
+                            <button onClick={() => handleEdit(r.projectId)}
+                              style={{
+                                border: "none",
+                                background: "#2563eb",
+                                color: "#fff",
+                                padding: "6px 12px",
+                                borderRadius: 8,
+                                cursor: "pointer",
+                                fontSize: 12,
+                                fontWeight: 500,
+                              }}>
+                              Edit
+                            </button>
+
+                            <button onClick={() => handleDelete(r.projectId)}
+                              style={{
+                                border: "none",
+                                background: "#89b2ff",
+                                color: CRIMSON,
+                                padding: "6px 12px",
+                                borderRadius: 8,
+                                cursor: "pointer",
+                                fontSize: 12,
+                                fontWeight: 500,
+                              }}>
+                              Delete
                             </button>
                           </td>
                         </tr>

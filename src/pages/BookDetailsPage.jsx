@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Aurora from "../components/Aurora";
 import { COLORS } from "../styles/theme";
+import { fetchBookById } from "../services/api";//added 
 
 const {
   crimson: CRIMSON,
@@ -25,26 +26,15 @@ const BookDetailsPage = () => {
   useEffect(() => {
     const loadBook = async () => {
       try {
-        const token =
-          localStorage.getItem("access_token");
 
-        const response = await fetch(
-          `/api/books/${id}/`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        const data = await response.json();
+        const data = await fetchBookById(id);//added  
 
         console.log("BOOK DETAILS:", data);
 
         setBook(data);
 
-        setChapters(data.chapters || []);
-
+        setChapters(Array.isArray(data.chapters) ? data.chapters : []);
+        
       } catch (error) {
         console.error(error);
       } finally {
@@ -121,18 +111,17 @@ const BookDetailsPage = () => {
           <div className="chapters-grid">
             {chapters.map((chapter) => (
               <div
-                key={chapter.id}
+                 key={chapter.id}
                 className="chapter-card"
+                  onClick={() => navigate(`/chapters/${chapter.id}`)}
+                  style={{ cursor: "pointer" }}
                 >
                 <h3>{chapter.title}</h3>
 
                 <p>
-                    Chapter No: {chapter.chapter_no}
+                    Chapter No: {chapter.chapter_number}
                 </p>
 
-                <p>
-                    Pages: {chapter.start_page} - {chapter.end_page}
-                </p>
 
                 </div>
             ))}
@@ -165,6 +154,11 @@ const BookDetailsPage = () => {
           background: rgba(255,255,255,0.12);
           padding: 20px;
           border-radius: 12px;
+        }
+
+        .chapter-card:hover {
+          transform: translateY(-3px);
+          transition: 0.2s ease;
         }
 
         .add-btn,

@@ -40,7 +40,11 @@ const AddChapterPage = () => {
     e.preventDefault();
 
     try {
-      await createChapter(bookId, formData);
+      await createChapter(bookId, {
+        title: formData.title,
+        chapter_number: Number(formData.chapter_number),
+        content: formData.content || "",
+      });
 
       alert("Chapter created successfully!");
 
@@ -96,13 +100,6 @@ const AddChapterPage = () => {
             onChange={handleChange}
           />
 
-          <textarea
-            name="content"
-            placeholder="Chapter Content"
-            value={formData.content}
-            onChange={handleChange}
-            rows={8}
-          />
 
           <button type="submit">
             Save Chapter

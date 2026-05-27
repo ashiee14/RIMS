@@ -2,11 +2,15 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Aurora from "../components/Aurora";
 import { COLORS } from "../styles/theme";
-import { addIPR } from "../services/api";
+import { addIPR, extractIPR } from "../services/api";
+
 
 const { crimson: CRIMSON } = COLORS;
 
 const AddIPRPage = () => {
+  const [file, setFile] = useState(null);
+  const [extracting, setExtracting] = useState(false);
+
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -18,6 +22,46 @@ const AddIPRPage = () => {
   });
 
   const [loading, setLoading] = useState(false);
+
+  const handleFileChange = (e) => {
+    setFile(e.target.files[0]);
+  };
+
+  const handleExtract = async () => {
+    if (!file) {
+      alert("Please select a file first");
+      return;
+    }
+
+    try {
+      setExtracting(true);
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const data = await extractIPR(formData);
+
+      console.log("EXTRACTED DATA:", data);
+
+      // 🔥 Autofill form
+      setFormData((prev) => ({
+        ...prev,
+        title: data.title || "",
+        ipr_type: data.ipr_type || "",
+        status: data.status || "",
+        application_no: data.application_no || "",
+        filing_date: data.filing_date || "",
+      }));
+
+      alert("Data extracted successfully!");
+
+    } catch (error) {
+      console.error(error);
+      alert("Extraction failed");
+    } finally {
+      setExtracting(false);
+    }
+  };
 
   const handleChange = (e) => {
     setFormData((prev) => ({
@@ -68,10 +112,19 @@ const AddIPRPage = () => {
 
       <div className="aurora-content">
         <h1 style={{ color: CRIMSON }}>
-          Add IPR
-        </h1>
+                  Add IPR
+                </h1>
 
-        <form onSubmit={handleSubmit} className="aurora-card">
+                <form onSubmit={handleSubmit} className="aurora-card">
+                  <input type="file" onChange={handleFileChange} />
+
+        <button
+          type="button"
+          onClick={handleExtract}
+          disabled={extracting}
+        >
+          {extracting ? "Extracting..." : "Auto Fill from File"}
+        </button>
 
           <input
             type="text"
