@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Aurora from "../components/Aurora";
 import { COLORS } from "../styles/theme";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
 const {
   crimson: CRIMSON,
@@ -13,6 +14,8 @@ const AwardsPage = () => {
   const [loading, setLoading] = useState(true);
 
   const navigate = useNavigate();
+  const { role } = useAuth();
+  const isViewer = role === "viewer";
 
   useEffect(() => {
     const root = document.getElementById("root");
@@ -28,7 +31,7 @@ const AwardsPage = () => {
 
         console.log("TOKEN:", token);
 
-        const response = await fetch("/api/awards/", {
+        const response = await fetch("https://rims-api.prerna.sh/api/awards/", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -71,13 +74,15 @@ const AwardsPage = () => {
           Recognitions and achievements received.
         </p>
 
-        <button
-          onClick={() => navigate("/add-awards")}
-          className="action-btn save-btn"
-          style={{ marginBottom: 24 }}
-        >
-          Add Award
-        </button>
+        {!isViewer && (
+          <button
+            onClick={() => navigate("/add-awards")}
+            className="action-btn save-btn"
+            style={{ marginBottom: 24 }}
+          >
+            Add Award
+          </button>
+        )}
 
         {loading ? (
           <p>Loading awards...</p>

@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Aurora from "../components/Aurora";
 import { COLORS } from "../styles/theme";
-import { jwtDecode } from "jwt-decode"; //added for decoding JWT
+import { jwtDecode } from "jwt-decode";
+import { useAuth } from "../contexts/AuthContext";
 
 const {
   crimson: CRIMSON,
@@ -16,6 +17,8 @@ const {
 
 const AddAwardsPage = ({ onNav }) => {
   const navigate = useNavigate();
+  const { role } = useAuth();
+  const isViewer = role === "viewer";
 
   const [selectedFile, setSelectedFile] = useState(null);
 
@@ -265,14 +268,16 @@ const AddAwardsPage = ({ onNav }) => {
           style={{ marginBottom: 14 }}
         />
 
-        <button
-          type="button"
-          className="action-btn save-btn"
-          onClick={handleCertificateUpload}
-          disabled={uploading}
-        >
-          {uploading ? "Uploading..." : "Upload Image"}
-        </button>
+        {!isViewer && (
+          <button
+            type="button"
+            className="action-btn save-btn"
+            onClick={handleCertificateUpload}
+            disabled={uploading}
+          >
+            {uploading ? "Uploading..." : "Upload Image"}
+          </button>
+        )}
       </div>
 
       <form

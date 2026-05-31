@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Aurora from "../components/Aurora";
 import { COLORS, FONT } from "../styles/theme";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
 const {
   crimson: CRIMSON,
@@ -25,6 +26,8 @@ const EventsPage = () => {
   const [editingId, setEditingId] = useState(null);
 
   const navigate = useNavigate();
+  const { role } = useAuth();
+  const isViewer = role === "viewer";
 
   const [editForm, setEditForm] = useState({
       title: "",
@@ -49,7 +52,7 @@ const EventsPage = () => {
       const token = localStorage.getItem("access_token");
 
       let allEvents = [];
-      let nextUrl = "/api/events/";
+      let nextUrl = "https://rims-api.prerna.sh/api/events/";
 
       while (nextUrl) {
         const response = await fetch(nextUrl, {
@@ -97,7 +100,7 @@ const handleDeleteEvent = async (id) => {
 
     console.log("DELETING EVENT:", id);
 
-    const response = await fetch(`/api/events/${id}/`, {
+    const response = await fetch(`https://rims-api.prerna.sh/api/events/${id}/`, {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -154,7 +157,7 @@ const handleUpdateEvent = async () => {
     console.log("UPDATING EVENT:", payload);
 
     const response = await fetch(
-      `/api/events/${editingId}/`,
+      `https://rims-api.prerna.sh/api/events/${editingId}/`,
       {
         method: "PATCH",
         headers: {
@@ -232,13 +235,15 @@ const handleUpdateEvent = async () => {
           Academic and institutional events.
         </p>
 
-        <button
-          onClick={() => navigate("/add-event")}
-          className="event-btn event-create-btn"
-          style={{ marginBottom: 24 }}
-        >
-          Add Event
-        </button>
+        {!isViewer && (
+          <button
+            onClick={() => navigate("/add-event")}
+            className="event-btn event-create-btn"
+            style={{ marginBottom: 24 }}
+          >
+            Add Event
+          </button>
+        )}
 
 
         <div className="events-grid">

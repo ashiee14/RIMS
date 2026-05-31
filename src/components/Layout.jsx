@@ -1,5 +1,6 @@
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import Navbar from "./Navbar";
+import ViewerToast from "./ViewerToast";
 
 const Layout = () => {
   const location = useLocation();
@@ -13,6 +14,7 @@ const Layout = () => {
     <>
       <Navbar activePage={location.pathname} onNav={handleNav} />
       <Outlet />
+      <ViewerToast />
     </>
   );
 };

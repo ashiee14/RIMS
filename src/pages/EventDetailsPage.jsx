@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Aurora from "../components/Aurora";
 import { COLORS } from "../styles/theme";
+import { useAuth } from "../contexts/AuthContext";
 
 const {
   crimson: CRIMSON,
@@ -12,8 +13,9 @@ const {
 
 const EventDetailsPage = () => {
   const { id } = useParams();
-
   const navigate = useNavigate();
+  const { role } = useAuth();
+  const isViewer = role === "viewer";
 
   const [event, setEvent] = useState(null);
 
@@ -40,7 +42,7 @@ const EventDetailsPage = () => {
           localStorage.getItem("access_token");
 
         const response = await fetch(
-          `/api/events/${id}/`,
+          `https://rims-api.prerna.sh/api/events/${id}/`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -72,7 +74,7 @@ const EventDetailsPage = () => {
         localStorage.getItem("access_token");
 
       const response = await fetch(
-        `/api/events/${id}/participate/`,
+        `https://rims-api.prerna.sh/api/events/${id}/participate/`,
         {
           method: "POST",
           headers: {
@@ -177,15 +179,15 @@ const EventDetailsPage = () => {
             </div>
           )}
 
-          <button
-            onClick={handleParticipate}
-            disabled={participating}
-            className="participate-btn"
-          >
-            {participating
-              ? "Processing..."
-              : "Participate"}
-          </button>
+          {!isViewer && (
+            <button
+              onClick={handleParticipate}
+              disabled={participating}
+              className="participate-btn"
+            >
+              {participating ? "Processing..." : "Participate"}
+            </button>
+          )}
         </div>
       </div>
 

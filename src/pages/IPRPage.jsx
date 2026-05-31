@@ -7,6 +7,7 @@ import {
   deleteIPR,
 } from "../services/api";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
 const {
   crimson: CRIMSON,
@@ -19,6 +20,8 @@ const IPRPage = () => {
   const [iprs, setIprs] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { role } = useAuth();
+  const isViewer = role === "viewer";
 
   const [editingId, setEditingId] = useState(null);
 
@@ -151,12 +154,14 @@ const handleDelete = async (id) => {
         <h1 style={{ color: CRIMSON }}>Intellectual Property Rights (IPR)</h1>
         <p style={{ color: TEXT_MUTED }}>Patents, copyrights, and trademarks.</p>
 
-        <button
-          onClick={() => navigate("/add-ipr")}
-          className="add-btn"
-        >
-          Add IPR
-        </button>
+        {!isViewer && (
+          <button
+            onClick={() => navigate("/add-ipr")}
+            className="add-btn"
+          >
+            Add IPR
+          </button>
+        )}
 
 
         {loading ? (

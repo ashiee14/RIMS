@@ -187,7 +187,8 @@ const Dropdown = ({ label, icon, items, color = "outline", align="left" }) => {
 /* ─── Navbar Component ─────────────────────────────── */
 
 export default function Navbar() {
-  const { user, logout } = useAuth();
+  const { user, role, logout } = useAuth();
+  const isViewer = role === "viewer";
   const navigate = useNavigate();
   const toolItems = [
   { label: "SDG Tagger", path: "/sdg-tagger" },
@@ -258,7 +259,7 @@ export default function Navbar() {
       {/* Dropdowns */}
       <Dropdown label="Research Tools" color="teal" items={toolItems} />
       <Dropdown label="View Research" items={viewItems} />
-      <Dropdown label="Add Research" color="crimson" items={addItems} />
+      {!isViewer && <Dropdown label="Add Research" color="crimson" items={addItems} />}
       <Dropdown
         label={user?.name || "User"}
         color="dark"
@@ -266,7 +267,7 @@ export default function Navbar() {
         icon={<UserIcon />}
         items={[
             { label: "My Profile", path: "/user-profile" },
-            { label: "Admin Panel", path: "/admin" },
+            ...(!isViewer ? [{ label: "Admin Panel", path: "/admin" }] : []),
             { label: "Sign Out", onClick: () => { logout(); navigate('/'); } },
         ]}
         />
