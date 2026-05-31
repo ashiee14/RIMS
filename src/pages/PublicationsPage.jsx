@@ -4,7 +4,7 @@ import { COLORS } from "../styles/theme";
 import { ChevronDown } from "../components/Navbar";
 import { fetchPublications } from "../services/api";
 import { useNavigate } from "react-router-dom";
-  
+
 const {
   crimson: CRIMSON,
   border: BORDER,
@@ -45,8 +45,14 @@ const filters = [
 const defaultSelections = {
   Year: ["All (7637)"],
   "Publication Type": ["All (1732)"],
-  // start with none selected for Indexed In so boxes are unchecked by default
   "Indexed In": [],
+};
+
+const QUARTILE_COLORS = {
+  Q1: "#B22222",
+  Q2: "#1D6B5E",
+  Q3: "#C8941A",
+  Q4: "#4A90D9",
 };
 
 const PublicationsPage = () => {
@@ -60,6 +66,13 @@ const PublicationsPage = () => {
   const [nameQuery, setNameQuery] = useState("");
   const [appliedNameQuery, setAppliedNameQuery] = useState("");
 
+  // API-level filters
+  const [ifMin, setIfMin] = useState("");
+  const [ifMax, setIfMax] = useState("");
+  const [top1, setTop1] = useState(false);
+  const [top10, setTop10] = useState(false);
+  const [apiParams, setApiParams] = useState({});
+
   useEffect(() => {
     const root = document.getElementById("root");
     root.classList.add("aurora-root");
@@ -72,7 +85,7 @@ const PublicationsPage = () => {
       setError(null);
 
       try {
-        const data = await fetchPublications();
+        const data = await fetchPublications(apiParams);
         const publications = Array.isArray(data)
           ? data
           : Array.isArray(data?.results)
@@ -90,7 +103,7 @@ const PublicationsPage = () => {
     };
 
     loadPublications();
-  }, []);
+  }, [apiParams]);
 
   const toggleSelection = (group, item) => {
     setSelections((prev) => {
@@ -98,25 +111,31 @@ const PublicationsPage = () => {
       const selected = new Set(current);
       if (selected.has(item)) selected.delete(item);
       else selected.add(item);
-      return {
-        ...prev,
-        [group]: Array.from(selected),
-      };
+      return { ...prev, [group]: Array.from(selected) };
     });
   };
 
   const applyFilters = () => {
-    // create shallow copy to guarantee new reference and trigger updates
+    const params = {};
+    if (top1) params.in_top_1_percentile = true;
+    else if (top10) params.in_top_10_percentile = true;
+    if (ifMin !== "") params.impact_factor_gte = parseFloat(ifMin);
+    if (ifMax !== "") params.impact_factor_lte = parseFloat(ifMax);
+    setApiParams(params);
     setAppliedSelections({ ...selections });
     setAppliedNameQuery(nameQuery.trim());
   };
 
   const clearFilters = () => {
-    // reset to fresh copies to avoid shared references
     setSelections({ ...defaultSelections });
     setAppliedSelections({ ...defaultSelections });
     setNameQuery("");
     setAppliedNameQuery("");
+    setIfMin("");
+    setIfMax("");
+    setTop1(false);
+    setTop10(false);
+    setApiParams({});
   };
 
   const activeFilterLabel = (group) => {
@@ -163,39 +182,29 @@ const PublicationsPage = () => {
       return selected.some((item) => indexedValue(p).includes(item.toLowerCase()));
     };
 
-    // allow live searching while typing (use appliedNameQuery if set, otherwise use current nameQuery)
     const matchesName = (p) => {
       const rawQuery = (appliedNameQuery || nameQuery || "").trim().toLowerCase();
       if (!rawQuery) return true;
 
       const q = rawQuery.replace(/[^a-z0-9]/g, "");
-
-      // normalized full text (authors + title)
       const full = nameValue(p).replace(/[^a-z0-9]/g, "");
       if (full.includes(q)) return true;
 
-      // build initials for each author and combined initials
       const authors = Array.isArray(p.author_names) ? p.author_names : p.author_names ? [p.author_names] : [];
       const authorInitials = authors.map((a) => {
-        return String(a)
-          .split(/\s+/)
-          .filter(Boolean)
-          .map((part) => (part[0] || "").toLowerCase())
-          .join("");
+        return String(a).split(/\s+/).filter(Boolean).map((part) => (part[0] || "").toLowerCase()).join("");
       });
 
       const combinedInitials = authorInitials.join("");
       if (combinedInitials.includes(q)) return true;
 
-      // check per-author initials or tokens (prefix match helps partial input)
       for (const a of authors) {
         const parts = String(a).split(/\s+/).filter(Boolean).map((t) => t.toLowerCase());
         const initials = parts.map((t) => (t[0] || "")).join("");
         if (initials.includes(q)) return true;
-
         for (const tok of parts) {
-          if (tok.startsWith(rawQuery)) return true; // allow partial start match
-          if (tok.includes(rawQuery)) return true; // allow substring match
+          if (tok.startsWith(rawQuery)) return true;
+          if (tok.includes(rawQuery)) return true;
         }
       }
 
@@ -253,6 +262,69 @@ const PublicationsPage = () => {
               </div>
             ))}
 
+            {/* Percentile filter */}
+            <div className="filter-section">
+              <div className="filter-title">
+                <span>Percentile</span>
+                <ChevronDown size={12} />
+              </div>
+              <label className="filter-item">
+                <input
+                  type="checkbox"
+                  checked={top1}
+                  onChange={(e) => {
+                    setTop1(e.target.checked);
+                    if (e.target.checked) setTop10(false);
+                  }}
+                  style={{ accentColor: CRIMSON }}
+                />
+                Top 1%
+              </label>
+              <label className="filter-item">
+                <input
+                  type="checkbox"
+                  checked={top10}
+                  onChange={(e) => {
+                    setTop10(e.target.checked);
+                    if (e.target.checked) setTop1(false);
+                  }}
+                  style={{ accentColor: CRIMSON }}
+                />
+                Top 10%
+              </label>
+            </div>
+
+            {/* Impact Factor range filter */}
+            <div className="filter-section">
+              <div className="filter-title">
+                <span>Impact Factor</span>
+                <ChevronDown size={12} />
+              </div>
+              <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                <input
+                  className="name-search-input"
+                  type="number"
+                  min="0"
+                  step="0.1"
+                  value={ifMin}
+                  onChange={(e) => setIfMin(e.target.value)}
+                  placeholder="Min"
+                  style={{ flex: 1, padding: "8px 10px" }}
+                />
+                <span style={{ color: TEXT_MUTED, fontSize: 12 }}>—</span>
+                <input
+                  className="name-search-input"
+                  type="number"
+                  min="0"
+                  step="0.1"
+                  value={ifMax}
+                  onChange={(e) => setIfMax(e.target.value)}
+                  placeholder="Max"
+                  style={{ flex: 1, padding: "8px 10px" }}
+                />
+              </div>
+            </div>
+
             <div className="filter-actions">
               <button className="action-button" onClick={applyFilters}>
                 Apply filters
@@ -282,7 +354,7 @@ const PublicationsPage = () => {
             <div className="results-summary">
               <span>Active filters:</span>
               <div className="filter-summary">
-                {Object.keys(selections).map((group) => (
+                {Object.keys(appliedSelections).map((group) => (
                   <div key={group} className="summary-pill">
                     {group}: {activeFilterLabel(group)}
                   </div>
@@ -290,6 +362,10 @@ const PublicationsPage = () => {
                 {appliedNameQuery ? (
                   <div className="summary-pill">Names: {appliedNameQuery}</div>
                 ) : null}
+                {apiParams.in_top_1_percentile && <div className="summary-pill">Top 1%</div>}
+                {apiParams.in_top_10_percentile && <div className="summary-pill">Top 10%</div>}
+                {apiParams.impact_factor_gte && <div className="summary-pill">IF ≥ {apiParams.impact_factor_gte}</div>}
+                {apiParams.impact_factor_lte && <div className="summary-pill">IF ≤ {apiParams.impact_factor_lte}</div>}
               </div>
             </div>
 
@@ -305,14 +381,50 @@ const PublicationsPage = () => {
                   {p.is_open_access && (
                     <div className="pdf-badge">PDF Available</div>
                   )}
-                  <h3 style={{ color: CRIMSON, margin: 0 }}>{p.title}</h3>
+                  <h3 style={{ color: CRIMSON, margin: 0, paddingRight: p.is_open_access ? 110 : 0 }}>
+                    {p.title}
+                  </h3>
                   <p style={{ color: TEXT_MUTED, margin: "8px 0" }}>
                     Authors: {p.author_names?.join(", ") || "N/A"}
                   </p>
                   <p style={{ color: TEXT_HINT, margin: 0 }}>
                     {p.journal?.name || "Unknown Journal"} • {p.year}
                   </p>
-                
+
+                  {/* Quality badges */}
+                  <div className="pub-badges">
+                    {p.in_top_1_percentile && (
+                      <span className="badge badge-top1">Top 1%</span>
+                    )}
+                    {p.in_top_10_percentile && !p.in_top_1_percentile && (
+                      <span className="badge badge-top10">Top 10%</span>
+                    )}
+                    {p.journal?.quartile && (
+                      <span
+                        className="badge badge-quartile"
+                        style={{ background: QUARTILE_COLORS[p.journal.quartile] || "#555" }}
+                      >
+                        {p.journal.quartile}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Metrics chips */}
+                  {(p.impact_factor != null || p.journal?.hindex != null) && (
+                    <div className="pub-metrics">
+                      {p.impact_factor != null && (
+                        <span className="metric-chip">
+                          IF: {Number(p.impact_factor).toFixed(2)}
+                        </span>
+                      )}
+                      {p.journal?.hindex != null && (
+                        <span className="metric-chip">
+                          Journal H-Index: {p.journal.hindex}
+                        </span>
+                      )}
+                    </div>
+                  )}
+
                   <div className="pub-actions">
                     <button
                       className="view-button"
@@ -387,6 +499,7 @@ const PublicationsPage = () => {
         }
         .name-search-input {
           width: 100%;
+          box-sizing: border-box;
           padding: 10px 12px;
           background: rgba(255,255,255,0.08);
           border: 1px solid ${BORDER};
@@ -492,13 +605,42 @@ const PublicationsPage = () => {
           text-align: center;
           color: ${TEXT_MUTED};
         }
-
+        .pub-badges {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 6px;
+          margin-top: 10px;
+        }
+        .badge {
+          display: inline-block;
+          padding: 3px 8px;
+          border-radius: 999px;
+          font-size: 10px;
+          font-weight: 700;
+          color: #fff;
+          letter-spacing: 0.04em;
+        }
+        .badge-top1 { background: #B22222; }
+        .badge-top10 { background: #E8820C; }
+        .pub-metrics {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin-top: 8px;
+        }
+        .metric-chip {
+          background: rgba(255,255,255,0.10);
+          border: 1px solid rgba(255,255,255,0.18);
+          border-radius: 8px;
+          padding: 3px 10px;
+          font-size: 11px;
+          color: #e0e0e0;
+        }
         .pub-actions {
           margin-top: 18px;
           display: flex;
           justify-content: flex-end;
         }
-
         .view-button {
           padding: 10px 18px;
           border-radius: 999px;
@@ -510,7 +652,6 @@ const PublicationsPage = () => {
           cursor: pointer;
           transition: 0.2s ease;
         }
-
         .view-button:hover {
           transform: translateY(-1px);
         }

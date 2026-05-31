@@ -11,6 +11,13 @@ const {
   cardBg: CARD_BG,
 } = COLORS;
 
+const QUARTILE_COLORS = {
+  Q1: "#B22222",
+  Q2: "#1D6B5E",
+  Q3: "#C8941A",
+  Q4: "#4A90D9",
+};
+
 const PublicationDetailsPage = () => {
   const { id } = useParams();
 
@@ -22,11 +29,7 @@ const PublicationDetailsPage = () => {
     const loadPublication = async () => {
       try {
         setLoading(true);
-
         const data = await fetchPublicationById(id);
-
-        console.log("PUBLICATION DETAILS:", data);
-
         setPublication(data);
       } catch (err) {
         console.error(err);
@@ -58,6 +61,27 @@ const PublicationDetailsPage = () => {
           <div className="details-card">
             <h1>{publication.title}</h1>
 
+            {/* Quality badges */}
+            <div className="detail-badges">
+              {publication.in_top_1_percentile && (
+                <span className="detail-badge badge-top1">Top 1%</span>
+              )}
+              {publication.in_top_10_percentile && !publication.in_top_1_percentile && (
+                <span className="detail-badge badge-top10">Top 10%</span>
+              )}
+              {publication.journal?.quartile && (
+                <span
+                  className="detail-badge"
+                  style={{ background: QUARTILE_COLORS[publication.journal.quartile] || "#555" }}
+                >
+                  {publication.journal.quartile}
+                </span>
+              )}
+              {publication.is_open_access && (
+                <span className="detail-badge badge-oa">Open Access</span>
+              )}
+            </div>
+
             <div className="detail-row">
               <strong>Authors:</strong>
               <span>
@@ -69,8 +93,21 @@ const PublicationDetailsPage = () => {
               <strong>Journal:</strong>
               <span>
                 {publication.journal?.name || "N/A"}
+                {publication.journal?.issn && (
+                  <span className="sub-detail"> · ISSN {publication.journal.issn}</span>
+                )}
+                {publication.journal?.publisher && (
+                  <span className="sub-detail"> · {publication.journal.publisher}</span>
+                )}
               </span>
             </div>
+
+            {publication.journal?.hindex != null && (
+              <div className="detail-row">
+                <strong>Journal H-Index:</strong>
+                <span>{publication.journal.hindex}</span>
+              </div>
+            )}
 
             <div className="detail-row">
               <strong>Year:</strong>
@@ -79,15 +116,15 @@ const PublicationDetailsPage = () => {
 
             <div className="detail-row">
               <strong>Publication Type:</strong>
-              <span>
-                {publication.publication_type || "N/A"}
-              </span>
+              <span>{publication.publication_type || "N/A"}</span>
             </div>
 
             <div className="detail-row">
               <strong>Indexed In:</strong>
               <span>
-                {Array.isArray(publication.indexed_in)
+                {Array.isArray(publication.indexing) && publication.indexing.length > 0
+                  ? publication.indexing.map((i) => i.badge?.name).filter(Boolean).join(", ")
+                  : Array.isArray(publication.indexed_in)
                   ? publication.indexed_in.join(", ")
                   : publication.indexed_in || "N/A"}
               </span>
@@ -95,8 +132,67 @@ const PublicationDetailsPage = () => {
 
             <div className="detail-row">
               <strong>DOI:</strong>
-              <span>{publication.doi || "N/A"}</span>
+              <span>
+                {publication.doi ? (
+                  <a
+                    href={`https://doi.org/${publication.doi}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{ color: CRIMSON }}
+                  >
+                    {publication.doi}
+                  </a>
+                ) : "N/A"}
+              </span>
             </div>
+
+            <div className="detail-row">
+              <strong>Citations:</strong>
+              <span>{publication.cited_by_count ?? "N/A"}</span>
+            </div>
+
+            {publication.impact_factor != null && (
+              <div className="detail-row">
+                <strong>Impact Factor:</strong>
+                <span>IF: {Number(publication.impact_factor).toFixed(2)}</span>
+              </div>
+            )}
+
+            {publication.fwci != null && (
+              <div className="detail-row">
+                <strong>FWCI:</strong>
+                <span>
+                  {Number(publication.fwci).toFixed(2)}
+                  {publication.fwci > 1.0 && (
+                    <span className="sub-detail"> (above world average)</span>
+                  )}
+                </span>
+              </div>
+            )}
+
+            {publication.citation_normalized_percentile != null && (
+              <div className="detail-row">
+                <strong>Citation Percentile:</strong>
+                <span>
+                  {(publication.citation_normalized_percentile * 100).toFixed(1)}th percentile
+                </span>
+              </div>
+            )}
+
+            {(publication.volume || publication.issue || publication.pages) && (
+              <div className="detail-row">
+                <strong>Volume / Issue / Pages:</strong>
+                <span>
+                  {[
+                    publication.volume && `Vol. ${publication.volume}`,
+                    publication.issue && `Issue ${publication.issue}`,
+                    publication.pages && `pp. ${publication.pages}`,
+                  ]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </span>
+              </div>
+            )}
 
             <div className="description-block">
               <strong>Abstract</strong>
@@ -133,9 +229,30 @@ const PublicationDetailsPage = () => {
         }
 
         .details-card h1 {
-          margin-bottom: 24px;
+          margin-bottom: 16px;
           color: ${CRIMSON};
         }
+
+        .detail-badges {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin-bottom: 20px;
+        }
+
+        .detail-badge {
+          display: inline-block;
+          padding: 4px 12px;
+          border-radius: 999px;
+          font-size: 11px;
+          font-weight: 700;
+          color: #fff;
+          letter-spacing: 0.04em;
+        }
+
+        .badge-top1 { background: #B22222; }
+        .badge-top10 { background: #E8820C; }
+        .badge-oa { background: #1D6B5E; }
 
         .detail-row {
           display: flex;
@@ -147,6 +264,12 @@ const PublicationDetailsPage = () => {
 
         .detail-row strong {
           min-width: 220px;
+          flex-shrink: 0;
+        }
+
+        .sub-detail {
+          color: ${TEXT_MUTED};
+          font-size: 0.9em;
         }
 
         .description-block {
@@ -169,6 +292,9 @@ const PublicationDetailsPage = () => {
         @media (max-width: 768px) {
           .detail-row {
             flex-direction: column;
+          }
+          .detail-row strong {
+            min-width: unset;
           }
         }
       `}</style>
