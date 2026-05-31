@@ -3,9 +3,10 @@ import Aurora from "../components/Aurora";
 import { COLORS} from "../styles/theme";
 import axios from "axios";
 import { useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 import {
   previewORCID,
-  linkORCID,
 } from "../services/api";
 import { fetchMyPublications } from "../services/api";
 import { searchPublications } from "../services/api";
@@ -27,7 +28,10 @@ const {
 
 const UserProfilePage = () => {
   const fetchedRef = useRef(false);
-  
+  const navigate = useNavigate();
+  const { role, linkOrcid } = useAuth();
+  const isViewer = role === "viewer";
+
   const token = localStorage.getItem("access_token");
 
   let id = null;
@@ -143,31 +147,25 @@ const UserProfilePage = () => {
 
       setProfile(fetchedUser);
 
-      // PUBLICATIONS
-
-        // PUBLICATIONS (USE /mine/ INSTEAD OF ORCID)
+      // PUBLICATIONS — skip for viewers (blocked endpoint)
+      if (!isViewer) {
         const pubRes = await fetchMyPublications();
-
         setPubs(pubRes.results || pubRes);
-
-      
-              // PUBLICATION STATS
-      const statsRes = await axios.get(
-        `${API_BASE}/api/publications/stats/`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      console.log("STATS RESPONSE:", statsRes.data);
-
-      if (!statsRes.data) {
-        console.log("No stats returned");
       }
 
-      setStats(statsRes.data);
+      
+      // PUBLICATION STATS — skip for viewers
+      if (!isViewer) {
+        const statsRes = await axios.get(
+          `${API_BASE}/api/publications/stats/`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        setStats(statsRes.data);
+      }
 
       //CONFEERENCES
       const confRes = await axios.get(
@@ -241,33 +239,24 @@ const UserProfilePage = () => {
       setOrcidError("");
 
       if (!orcidInput.trim()) {
-        setOrcidError(
-          "Please enter an ORCID ID"
-        );
+        setOrcidError("Please enter an ORCID ID");
         return;
       }
 
-      const response =
-        await linkORCID({
-          orcid_id: orcidInput,
-        });
+      const response = await linkOrcid(orcidInput.trim());
 
-      console.log(
-        "ORCID LINK RESPONSE:",
-        response
-      );
-
-      // Refresh profile
-      await fetchProfile();
+      if (response.status === "linked") {
+        navigate("/dashboard");
+      } else if (response.status === "not_found") {
+        setOrcidError("Your ORCID is not registered in RIMS. You remain a viewer.");
+      }
 
       setOrcidInput("");
 
     } catch (err) {
       console.error(err);
-
       setOrcidError(
-        err.response?.data?.detail ||
-        "Failed to link ORCID"
+        err.response?.data?.detail || "Failed to link ORCID"
       );
     } finally {
       setOrcidLoading(false);
@@ -490,7 +479,7 @@ const UserProfilePage = () => {
           </button>
       </div>
 
-      {/* Overview */}
+      {!isViewer && <>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
         <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, fontWeight: 400 }}>Overview</h2>
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
@@ -1208,6 +1197,7 @@ const UserProfilePage = () => {
           }
         }
       `}</style>
+      </>}
     </div>
   );
 };

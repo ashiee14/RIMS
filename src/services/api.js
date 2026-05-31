@@ -30,6 +30,12 @@ API.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
+    // Viewer 403 — dispatch global event for toast
+    if (error.response?.status === 403) {
+      window.dispatchEvent(new CustomEvent("rims:403"));
+      return Promise.reject(error);
+    }
+
     // Access token expired
     if (
         error.response?.status === 401 &&
@@ -76,6 +82,10 @@ export const googleLogin = async (googleToken, userInfo = null) => {
   // Store JWT tokens
   localStorage.setItem("access_token", res.data.access);
   localStorage.setItem("refresh_token", res.data.refresh);
+  localStorage.setItem("user_role", res.data.role || "viewer");
+  if (res.data.user_id) {
+    localStorage.setItem("user_id", String(res.data.user_id));
+  }
 
   // Store Google user info
   if (userInfo) {
@@ -97,6 +107,8 @@ export const logout = () => {
   localStorage.removeItem("access_token");
   localStorage.removeItem("refresh_token");
   localStorage.removeItem("user_info");
+  localStorage.removeItem("user_role");
+  localStorage.removeItem("user_id");
 
   window.location.href = "/login";
 };
@@ -674,9 +686,7 @@ export const fetchUsers = async (params = {}) => {
 };
 
 export const fetchTotalUsers = async () => {
-  const res = await API.get("/users/");
-
-  // DRF paginated response
+  const res = await API.get("/users/count/");
   return res.data.count || 0;
 };
 

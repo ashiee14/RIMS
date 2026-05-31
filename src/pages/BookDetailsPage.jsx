@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Aurora from "../components/Aurora";
 import { COLORS } from "../styles/theme";
-import { fetchBookById } from "../services/api";//added 
+import { fetchBookById } from "../services/api";
+import { useAuth } from "../contexts/AuthContext";
 
 const {
   crimson: CRIMSON,
@@ -13,6 +14,8 @@ const BookDetailsPage = () => {
   const { id } = useParams();
 
   const navigate = useNavigate();
+  const { role } = useAuth();
+  const isViewer = role === "viewer";
 
   const [book, setBook] = useState(null);
 
@@ -92,14 +95,14 @@ const BookDetailsPage = () => {
 
         <p>Pages: {book.pages || "N/A"}</p>
 
-        <button
-          onClick={() =>
-            navigate(`/books/${book.id}/add-chapter`)
-          }
-          className="add-btn"
-        >
-          Add Chapter
-        </button>
+        {!isViewer && (
+          <button
+            onClick={() => navigate(`/books/${book.id}/add-chapter`)}
+            className="add-btn"
+          >
+            Add Chapter
+          </button>
+        )}
 
         <h2 style={{ marginTop: 30 }}>
           Chapters

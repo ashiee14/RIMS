@@ -4,10 +4,11 @@ import Aurora from "../components/Aurora";
 import { COLORS, FONT, RADIUS } from "../styles/theme";
 import { Logo, GoogleIcon } from "../components/Icons";
 import { useAuth } from "../contexts/AuthContext";
+import OrcidPromptModal from "../components/OrcidPromptModal";
 
 const HomePage = () => {
   const navigate = useNavigate();
-  const { login, user, loading } = useAuth();
+  const { login, user, loading, showOrcidModal, setShowOrcidModal } = useAuth();
 
   useEffect(() => {
     if (!loading && user) {
@@ -25,31 +26,17 @@ const HomePage = () => {
   };
 
   const handleCredentialResponse = async (response) => {
-  try {
-    console.log("Google Token:", response.credential);
+    try {
+      await login(response.credential);
+    } catch (err) {
+      console.error("FULL ERROR:", err.response?.data || err.message);
+    }
+  };
 
-    // Decode Google JWT
-    const payload = JSON.parse(
-      atob(response.credential.split(".")[1])
-    );
-
-    const userInfo = {
-      name: payload.name,
-      email: payload.email,
-      picture: payload.picture,
-    };
-
-    await login(response.credential, userInfo);
-
+  const handleOrcidDismiss = (linked) => {
+    setShowOrcidModal(false);
     navigate("/dashboard");
-
-  } catch (err) {
-    console.error(
-      "FULL ERROR:",
-      err.response?.data || err.message
-    );
-  }
-};
+  };
 
   if (loading) {
     return <div>Loading...</div>;
@@ -255,6 +242,8 @@ const HomePage = () => {
           }
         }
       `}</style>
+
+      {showOrcidModal && <OrcidPromptModal onDismiss={handleOrcidDismiss} />}
     </div>
   );
 };

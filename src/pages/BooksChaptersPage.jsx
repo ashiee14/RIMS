@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import Aurora from "../components/Aurora";
 import { COLORS } from "../styles/theme";
 import { useNavigate } from "react-router-dom";
-//added
+import { useAuth } from "../contexts/AuthContext";
 import {
   fetchBooks,
   deleteBook,
@@ -28,6 +28,8 @@ const BooksChaptersPage = () => {
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingBookId, setEditingBookId] = useState(null);
+  const { role } = useAuth();
+  const isViewer = role === "viewer";
 
   const navigate = useNavigate();
 
@@ -196,13 +198,15 @@ const handleUpdateBook = async () => {
           Published books and book chapters.
         </p>
 
-        <button
-          onClick={() => navigate("/add-book")}
-          className="action-btn save-btn"
-          style={{ marginBottom: 24 }}
-        >
-          Add Book
-        </button>
+        {!isViewer && (
+          <button
+            onClick={() => navigate("/add-book")}
+            className="action-btn save-btn"
+            style={{ marginBottom: 24 }}
+          >
+            Add Book
+          </button>
+        )}
 
         {loading ? (
         <p>Loading books...</p>
