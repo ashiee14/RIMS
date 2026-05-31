@@ -57,7 +57,7 @@ function TopStatsRow({ stats, totalUsers }) {
       }}
     >
       <div style={glassCard}>
-        <div style={{ fontSize: 11, color: "#eaeaea", marginTop: 12 }}>
+        <div style={{ fontSize: 18, color: "#eaeaea", marginTop: 12 }}>
           Total Indexed Publications
         </div>
         <StatCard
@@ -69,7 +69,7 @@ function TopStatsRow({ stats, totalUsers }) {
       </div>
 
       <div style={glassCard}>
-        <div style={{ fontSize: 11, color: "#eaeaea", marginTop: 12 }}>
+        <div style={{ fontSize: 18, color: "#eaeaea", marginTop: 12 }}>
           Total Registered Users
         </div>
 
@@ -89,7 +89,7 @@ function TopStatsRow({ stats, totalUsers }) {
 
       {/* Impact Factor */}
       <div style={glassCard}>
-        <div style={{ fontSize: 11, color: "#eaeaea" }}>
+        <div style={{ fontSize: 18, color: "#eaeaea" }}>
           Impact Factor
         </div>
         <div style={{ fontSize: 12, color: "#ddd" }}>Average</div>
@@ -200,7 +200,7 @@ function IndexedRow({ stats }) {
 function IndexBlock({ label, items }) {
   return (
     <>
-      <div style={{ fontSize: 12, color: "#fff", marginBottom: 6 }}>
+      <div style={{ fontSize: 18, color: "#fff", marginBottom: 6 }}>
         {label}
       </div>
       <div style={{ display: "flex", gap: 10 }}>
@@ -231,7 +231,7 @@ function IndexBlock({ label, items }) {
 function PercentileCard({ label, value }) {
   return (
     <div style={{ ...glassCard, textAlign: "center" }}>
-      <div style={{ fontSize: 11, color: "#eee" }}>{label}</div>
+      <div style={{ fontSize: 18, color: "#eee" }}>{label}</div>
       <div
         style={{
           fontSize: 26,
@@ -277,12 +277,6 @@ function ChartsRow({
           </span>
         </div>
         <TrendChart data={trendData} />
-        {citationTotals && (
-          <div style={{ marginTop: 8, color: "#fff", fontSize: 12 }}>
-            Crossref: {citationTotals.crossref.toLocaleString()} |
-            Scopus: {citationTotals.scopus.toLocaleString()}
-          </div>
-        )}
       </div>
 
       {/* Donut & SDG */}
@@ -569,16 +563,8 @@ export default function IndexPage() {
     ]
   : [];
 
-  const realTrendData = dashboardData
-  ? (
-      dashboardData.publications?.by_year || []
-    ).map((item) => ({
-      year: item.year,
-      indexed: item.count,
-      crossref: item.count,
-      scopus: item.count,
-    }))
-  : [];
+  const realTrendData =
+  dashboardData?.publications?.by_year || [];
 
   const realCitationTotals = dashboardData
   ? {
