@@ -1,7 +1,7 @@
 // src/services/api.js
 import axios from "axios";
 
-const BASE_URL = "https://rims-api.prerna.sh/api";
+const BASE_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api";
 
 const API = axios.create({
   baseURL: BASE_URL,
@@ -82,7 +82,7 @@ export const googleLogin = async (googleToken, userInfo = null) => {
   // Store JWT tokens
   localStorage.setItem("access_token", res.data.access);
   localStorage.setItem("refresh_token", res.data.refresh);
-  localStorage.setItem("user_role", res.data.role || "viewer");
+  if (res.data.role) localStorage.setItem("user_role", res.data.role);
   if (res.data.user_id) {
     localStorage.setItem("user_id", String(res.data.user_id));
   }
@@ -428,8 +428,20 @@ export const fetchPublicationById = async (id) => {
 };
 
 // GET logged-in user's publications
-export const fetchMyPublications = async () => {
-  const res = await API.get("/publications/mine/");
+export const fetchMyPublications = async (params = {}) => {
+  const res = await API.get("/publications/mine/", { params });
+  return res.data;
+};
+
+// GET publication metrics (scope, percentile, etc.)
+export const fetchPublicationMetrics = async (params = {}) => {
+  const res = await API.get("/publications/metrics/", { params });
+  return res.data;
+};
+
+// GET college-wide publication metrics (scope=all)
+export const fetchPublicationMetricsAll = async () => {
+  const res = await API.get("/publications/metrics/", { params: { scope: "all" } });
   return res.data;
 };
 

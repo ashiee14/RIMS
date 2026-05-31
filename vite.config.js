@@ -6,7 +6,7 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "https://rims-api.prerna.sh",
+        target: "http://localhost:8000",
         changeOrigin: true,
         secure: false,
       },
