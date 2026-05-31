@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Aurora from "../components/Aurora";
 import { COLORS, FONT, RADIUS } from "../styles/theme";
 import { useFetch } from "../hooks/useFetch";
@@ -25,6 +25,8 @@ import {
   getColleges,
   fetchCollegeDashboard,
   fetchTotalUsers,
+  fetchPublicationMetricsAll,
+  fetchPublications,
 } from "../services/api";
 
 
@@ -331,59 +333,223 @@ function ChartsRow({
 }
 
 /* ────────────────────────────────────────────────────────────────
-   Institutional Table
+   Shared table styles
 ──────────────────────────────────────────────────────────────── */
-function InstitutionalTable({ colleges }) {
+const QUARTILE_COLORS = { Q1: "#B22222", Q2: "#1D6B5E", Q3: "#C8941A", Q4: "#4A90D9" };
+
+const TH = {
+  padding: "12px 16px",
+  color: "#fff",
+  fontSize: 12,
+  fontWeight: 700,
+  textAlign: "left",
+  letterSpacing: "0.04em",
+  textTransform: "uppercase",
+  whiteSpace: "nowrap",
+  borderBottom: "2px solid rgba(255,255,255,0.15)",
+};
+
+const TD = {
+  padding: "13px 16px",
+  fontSize: 13,
+  color: "rgba(255,255,255,0.88)",
+  borderBottom: "1px solid rgba(255,255,255,0.06)",
+  verticalAlign: "middle",
+};
+
+const tableCard = {
+  ...glassCard,
+  padding: 0,
+  overflow: "hidden",
+};
+
+/* ────────────────────────────────────────────────────────────────
+   Top Researchers Table
+──────────────────────────────────────────────────────────────── */
+function TopResearchersSection({ researchers, onRowClick }) {
+  if (!researchers?.length) return null;
+
   return (
-    <div style={glassCard}>
+    <div style={tableCard}>
       <div style={{ overflowX: "auto" }}>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
-            <tr style={{ background: COLORS.crimson }}>
-              {[
-                "Sr.No",
-                "College",
-                "Total Pubs",
-                "Indexed Pubs",
-                "Total Citations",
-                "Avg Impact Factor",
-                "Q1|Q2|Q3|Q4|None",
-              ].map((h) => (
-                <th
-                  key={h}
-                  style={{
-                    padding: "12px",
-                    color: "#fff",
-                    fontSize: 12,
-                    textAlign: "left",
-                  }}
-                >
-                  {h}
-                </th>
+            <tr style={{ background: "rgba(180,0,0,0.85)" }}>
+              {["#", "Researcher", "H-Index", "Publications", "Citations"].map((h) => (
+                <th key={h} style={TH}>{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {colleges.map((c) => {
+            {researchers.map((r, i) => (
+              <tr
+                key={r.user_id}
+                onClick={() => onRowClick && onRowClick(r.user_id)}
+                style={{ cursor: onRowClick ? "pointer" : "default", transition: "background 0.15s" }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.07)")}
+                onMouseLeave={(e) => (e.currentTarget.style.background = i % 2 === 1 ? "rgba(255,255,255,0.02)" : "transparent")}
+              >
+                <td style={{ ...TD, color: "rgba(255,255,255,0.35)", width: 36, fontWeight: 600 }}>
+                  {i + 1}
+                </td>
+                <td style={{ ...TD, fontWeight: 600, color: "#fff" }}>{r.name}</td>
+                <td style={{ ...TD, textAlign: "center" }}>
+                  <span style={{
+                    display: "inline-block",
+                    background: "rgba(178,34,34,0.35)",
+                    border: "1px solid rgba(178,34,34,0.6)",
+                    color: "#ff9999",
+                    borderRadius: 6,
+                    padding: "3px 12px",
+                    fontWeight: 700,
+                    fontSize: 13,
+                  }}>
+                    {r.h_index ?? 0}
+                  </span>
+                </td>
+                <td style={TD}>{r.total_publications ?? 0}</td>
+                <td style={TD}>{(r.total_citations ?? 0).toLocaleString()}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+/* ────────────────────────────────────────────────────────────────
+   Top Publications Table
+──────────────────────────────────────────────────────────────── */
+function TopPublicationsTable({ pubs, loading, onRowClick }) {
+  if (loading) {
+    return (
+      <div style={{ ...glassCard, color: "rgba(255,255,255,0.5)", fontSize: 13 }}>
+        Loading top publications…
+      </div>
+    );
+  }
+
+  if (!pubs.length) {
+    return (
+      <div style={{ ...glassCard, color: "rgba(255,255,255,0.5)", fontSize: 13 }}>
+        No publications data available yet.
+      </div>
+    );
+  }
+
+  return (
+    <div style={tableCard}>
+      <div style={{ overflowX: "auto" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <thead>
+            <tr style={{ background: "rgba(180,0,0,0.85)" }}>
+              {["#", "Title", "Journal", "Year", "Impact Factor", "Citations", "Quartile"].map((h) => (
+                <th key={h} style={TH}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {pubs.map((p, i) => (
+              <tr
+                key={p.id}
+                onClick={() => onRowClick(p.id)}
+                style={{
+                  cursor: "pointer",
+                  background: i % 2 === 1 ? "rgba(255,255,255,0.02)" : "transparent",
+                  transition: "background 0.15s",
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.07)")}
+                onMouseLeave={(e) => (e.currentTarget.style.background = i % 2 === 1 ? "rgba(255,255,255,0.02)" : "transparent")}
+              >
+                <td style={{ ...TD, color: "rgba(255,255,255,0.35)", width: 36, fontWeight: 600 }}>
+                  {i + 1}
+                </td>
+                <td style={{ ...TD, maxWidth: 340 }}>
+                  <div style={{ lineHeight: 1.4, wordBreak: "break-word" }}>{p.title}</div>
+                </td>
+                <td style={{ ...TD, maxWidth: 180, color: "rgba(255,255,255,0.65)" }}>
+                  <div style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 180 }}>
+                    {p.journal?.name || "—"}
+                  </div>
+                </td>
+                <td style={{ ...TD, whiteSpace: "nowrap", color: "rgba(255,255,255,0.65)" }}>
+                  {p.year}
+                </td>
+                <td style={{ ...TD, whiteSpace: "nowrap", fontWeight: 600, color: "#fff" }}>
+                  {p.impact_factor != null ? Number(p.impact_factor).toFixed(2) : "—"}
+                </td>
+                <td style={{ ...TD, whiteSpace: "nowrap" }}>
+                  {(p.cited_by_count ?? 0).toLocaleString()}
+                </td>
+                <td style={TD}>
+                  {p.journal?.quartile ? (
+                    <span style={{
+                      background: QUARTILE_COLORS[p.journal.quartile] || "#555",
+                      color: "#fff",
+                      borderRadius: 6,
+                      padding: "3px 10px",
+                      fontSize: 11,
+                      fontWeight: 700,
+                      letterSpacing: "0.03em",
+                    }}>
+                      {p.journal.quartile}
+                    </span>
+                  ) : "—"}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+/* ────────────────────────────────────────────────────────────────
+   Institutional Table
+──────────────────────────────────────────────────────────────── */
+function InstitutionalTable({ colleges }) {
+  return (
+    <div style={tableCard}>
+      <div style={{ overflowX: "auto" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <thead>
+            <tr style={{ background: "rgba(180,0,0,0.85)" }}>
+              {["#", "College", "Total Pubs", "Indexed Pubs", "Total Citations", "Avg Impact Factor", "Q1 | Q2 | Q3 | Q4 | None"].map((h) => (
+                <th key={h} style={TH}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {colleges.map((c, i) => {
               const { q1, q2, q3, q4, none } = c.quartiles;
               return (
-                <tr key={c.id}>
-                  <td style={{ padding: 12 }}>{c.id}</td>
-                  <td style={{ padding: 12 }}>{c.name}</td>
-                  <td style={{ padding: 12 }}>
-                    {c.totalPublications}
-                  </td>
-                  <td style={{ padding: 12 }}>
-                    {c.indexedBreakdown.total}
-                  </td>
-                  <td style={{ padding: 12 }}>
-                    {c.totalCitations}
-                  </td>
-                  <td style={{ padding: 12 }}>
-                    {c.avgImpactFactor}
-                  </td>
-                  <td style={{ padding: 12 }}>
-                    {q1}|{q2}|{q3}|{q4}|{none}
+                <tr
+                  key={c.id}
+                  style={{
+                    background: i % 2 === 1 ? "rgba(255,255,255,0.02)" : "transparent",
+                    transition: "background 0.15s",
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.07)")}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = i % 2 === 1 ? "rgba(255,255,255,0.02)" : "transparent")}
+                >
+                  <td style={{ ...TD, color: "rgba(255,255,255,0.35)", width: 36, fontWeight: 600 }}>{c.id}</td>
+                  <td style={{ ...TD, fontWeight: 500, color: "#fff" }}>{c.name}</td>
+                  <td style={TD}>{c.totalPublications.toLocaleString()}</td>
+                  <td style={TD}>{c.indexedBreakdown.total.toLocaleString()}</td>
+                  <td style={TD}>{c.totalCitations.toLocaleString()}</td>
+                  <td style={{ ...TD, fontWeight: 600, color: "#fff" }}>{c.avgImpactFactor}</td>
+                  <td style={TD}>
+                    <span style={{ color: "#ff8888" }}>{q1}</span>
+                    {" | "}
+                    <span style={{ color: "#5fd3bc" }}>{q2}</span>
+                    {" | "}
+                    <span style={{ color: "#f5c842" }}>{q3}</span>
+                    {" | "}
+                    <span style={{ color: "#7bb8f5" }}>{q4}</span>
+                    {" | "}
+                    <span style={{ color: "rgba(255,255,255,0.45)" }}>{none}</span>
                   </td>
                 </tr>
               );
@@ -446,6 +612,21 @@ export default function IndexPage() {
     error: collegesError,
   } = useFetch(getColleges);
 
+  const { data: metricsData } = useFetch(fetchPublicationMetricsAll);
+
+  const [topPubs, setTopPubs] = useState([]);
+  const [topPubsLoading, setTopPubsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchPublications({ ordering: "-cited_by_count", page_size: 10 })
+      .then((data) => {
+        const results = Array.isArray(data) ? data : (data?.results || []);
+        setTopPubs(results);
+      })
+      .catch(() => {})
+      .finally(() => setTopPubsLoading(false));
+  }, []);
+
   const anyLoading =  dashboardLoading ||  collegesLoading;
 
   const anyError =  dashboardError ||  collegesError;
@@ -462,8 +643,12 @@ export default function IndexPage() {
       retracted: 0,
 
       impactFactor: {
-        average: 0,
-        cumulative: 0,
+        average: metricsData?.avg_impact_factor != null
+          ? Number(metricsData.avg_impact_factor).toFixed(2)
+          : "—",
+        cumulative: metricsData?.cumulative_impact_factor != null
+          ? Number(metricsData.cumulative_impact_factor).toFixed(2)
+          : "—",
       },
 
       researchImpact: {
@@ -501,8 +686,9 @@ export default function IndexPage() {
         {
           label: "h-index",
           value:
-            dashboardData.research_indices
-              ?.h_index || 0,
+            metricsData?.h_index ??
+            dashboardData.research_indices?.h_index ??
+            0,
         },
       ],
 
@@ -510,16 +696,17 @@ export default function IndexPage() {
         {
           label: "i10-index",
           value:
-            dashboardData.research_indices
-              ?.i10_index || 0,
+            metricsData?.i10_index ??
+            dashboardData.research_indices?.i10_index ??
+            0,
         },
       ],
 
       top1Percentile:
-        dashboardData.awards?.total || 0,
+        metricsData?.top_1_percent_count ?? dashboardData.awards?.total ?? 0,
 
       top10Percentile:
-        dashboardData.ipr?.granted || 0,
+        metricsData?.top_10_percent_count ?? dashboardData.ipr?.granted ?? 0,
     }
   : null;
 
@@ -620,6 +807,41 @@ export default function IndexPage() {
               : quartile
           }
           sdgData={sdg}
+        />
+
+        {dashboardData?.top_researchers?.length > 0 && (
+          <>
+            <h2
+              style={{
+                fontFamily: FONT.serif,
+                fontSize: "22px",
+                color: "#fff",
+                margin: "20px 0 10px",
+              }}
+            >
+              Top Researchers by H-Index
+            </h2>
+            <TopResearchersSection
+              researchers={dashboardData.top_researchers}
+              onRowClick={(userId) => navigate(`/users/${userId}`)}
+            />
+          </>
+        )}
+
+        <h2
+          style={{
+            fontFamily: FONT.serif,
+            fontSize: "22px",
+            color: "#fff",
+            margin: "20px 0 10px",
+          }}
+        >
+          Top Publications by Citations
+        </h2>
+        <TopPublicationsTable
+          pubs={topPubs}
+          loading={topPubsLoading}
+          onRowClick={(id) => navigate(`/publications/${id}`)}
         />
 
         <h2
