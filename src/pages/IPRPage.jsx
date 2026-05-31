@@ -45,7 +45,7 @@ const [editForm, setEditForm] = useState({
       setLoading(true);
 
       let allIPRs = [];
-      let nextUrl = "https://rims-api.prerna.sh/api/ipr/";
+      let nextUrl = `${import.meta.env.VITE_API_URL}/ipr/`;
 
       while (nextUrl) {
   const response = await fetch(nextUrl, {
