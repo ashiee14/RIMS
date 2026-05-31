@@ -13,7 +13,7 @@ const {
   cardBg: CARD_BG,
 } = COLORS;
 
-const API_BASE = "https://rims-api.prerna.sh";
+const API_BASE = import.meta.env.VITE_API_URL;
 
 const UsersPage = () => {
   const navigate = useNavigate();
@@ -30,7 +30,7 @@ const UsersPage = () => {
       const token = localStorage.getItem("access_token");
 
       const res = await axios.get(
-        `${API_BASE}/api/users/`,
+        `${API_BASE}/users/`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

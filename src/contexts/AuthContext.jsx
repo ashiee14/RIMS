@@ -50,7 +50,7 @@ export const AuthProvider = ({ children }) => {
       };
 
       setUser(newUser);
-      setRole(data.role || "viewer");
+      setRole(data.role || null);
 
     } catch (error) {
       console.error("Login failed:", error);
