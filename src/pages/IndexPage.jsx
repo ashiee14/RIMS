@@ -24,7 +24,9 @@ import {
   getCitationTotals,
   getColleges,
   fetchCollegeDashboard,
+  fetchTotalUsers,
 } from "../services/api";
+
 
 /* ────────────────────────────────────────────────────────────────
    Glassmorphism Style
@@ -42,7 +44,7 @@ const glassCard = {
 /* ────────────────────────────────────────────────────────────────
    Top Stats Row
 ──────────────────────────────────────────────────────────────── */
-function TopStatsRow({ stats }) {
+function TopStatsRow({ stats, totalUsers }) {
   if (!stats) return null;
 
   return (
@@ -55,10 +57,11 @@ function TopStatsRow({ stats }) {
       }}
     >
       <div style={glassCard}>
-        <div style={{ fontSize: 11, color: "#eaeaea" }}>
-          Total Publications
+        <div style={{ fontSize: 11, color: "#eaeaea", marginTop: 12 }}>
+          Total Indexed Publications
         </div>
         <StatCard
+          
           label="Total Publications/Proceedings"
           value={stats.totalPublications.toLocaleString()}
           sub={`↑ ${stats.retracted} Retracted`}
@@ -66,15 +69,23 @@ function TopStatsRow({ stats }) {
       </div>
 
       <div style={glassCard}>
-        <div style={{ fontSize: 11, color: "#eaeaea" }}>
-          Indexed Publications/Proceedings
+        <div style={{ fontSize: 11, color: "#eaeaea", marginTop: 12 }}>
+          Total Registered Users
         </div>
-        <StatCard
-          label="Indexed Publications/Proceedings"
-          value={stats.indexedPublications.toLocaleString()}
-          accent={COLORS.crimson}
-        />
+
+        <div
+          style={{
+            fontSize: 28,
+            fontWeight: 700,
+            color: "#fff",
+            marginTop: 18,
+            marginBottom: 12,
+          }}
+        >
+          {totalUsers ?? 0}
+        </div>
       </div>
+
 
       {/* Impact Factor */}
       <div style={glassCard}>
@@ -97,40 +108,6 @@ function TopStatsRow({ stats }) {
         </div>
       </div>
 
-      {/* Research Impact */}
-      <div style={glassCard}>
-        <div
-          style={{
-            fontSize: 11,
-            color: "#eaeaea",
-            marginBottom: 8,
-          }}
-        >
-          Research Impact
-        </div>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr 1fr",
-            gap: 6,
-          }}
-        >
-          {[
-            ["Policy", stats.researchImpact.policy],
-            ["News", stats.researchImpact.news],
-            ["Wiki", stats.researchImpact.wiki],
-            ["FWCI", stats.researchImpact.fwci],
-            ["PE", stats.researchImpact.pe],
-          ].map(([label, value]) => (
-            <div key={label} style={{ fontSize: 11 }}>
-              <span style={{ color: "#ddd" }}>{label} </span>
-              <span style={{ fontWeight: 600, color: "#fff" }}>
-                {value}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }
@@ -145,14 +122,14 @@ function IndexedRow({ stats }) {
     <div
       style={{
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+        gridTemplateColumns: "repeat(2, minmax(220px, 1fr))",
         gap: 12,
         marginBottom: 14,
       }}
     >
       {/* Indexed In */}
       <div style={glassCard}>
-        <div style={{ fontSize: 12, color: "#fff", marginBottom: 10 }}>
+        <div style={{ fontSize: 18, color: "#fff", marginBottom: 10 }}>
           Indexed in
         </div>
         <div
@@ -191,9 +168,15 @@ function IndexedRow({ stats }) {
 
       {/* h-Index & i10-Index */}
       <div style={glassCard}>
-        <IndexBlock label="h-Index" items={stats.hIndex} />
-        <div style={{ marginTop: 12 }}>
+        <div style={{ display: "grid",
+            gridTemplateColumns: "repeat(2  , 1fr)",
+            gap: 8, }}>
+              <div style={{ fontSize: 18, color: "#fff", marginBottom: 10 }}>
+          <IndexBlock label="h-Index" items={stats.hIndex} />
+          </div>
+          <div style={{ fontSize: 18, color: "#fff", marginBottom: 10 }}>
           <IndexBlock label="i10-Index" items={stats.i10Index} />
+          </div>
         </div>
       </div>
 
@@ -460,6 +443,9 @@ export default function IndexPage() {
   const { data: citations } =
     useFetch(getCitationTotals);
 
+  const { data: totalUsers } =
+    useFetch(fetchTotalUsers);
+
   const {
     data: colleges,
     loading: collegesLoading,
@@ -631,7 +617,7 @@ export default function IndexPage() {
           Overview
         </h1>
 
-        <TopStatsRow stats={realStats || stats} />
+        <TopStatsRow stats={realStats || stats} totalUsers={totalUsers}/>
         <IndexedRow stats={realStats || stats} />
         <ChartsRow
           trendData={

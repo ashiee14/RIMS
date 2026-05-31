@@ -660,6 +660,27 @@ export const checkJournal = async (issn) => {
   return res.data;
 };
 
+
+/* ────────────────────────────────────────────────────────────────
+   Users API
+──────────────────────────────────────────────────────────────── */
+
+export const fetchUsers = async (params = {}) => {
+  const res = await API.get("/users/", {
+    params,
+  });
+
+  return res.data;
+};
+
+export const fetchTotalUsers = async () => {
+  const res = await API.get("/users/");
+
+  // DRF paginated response
+  return res.data.count || 0;
+};
+
+
 /* ────────────────────────────────────────────────────────────────
    ORCID API
 ──────────────────────────────────────────────────────────────── */
