@@ -193,8 +193,6 @@ export default function Navbar() {
   const toolItems = [
   { label: "SDG Tagger", path: "/sdg-tagger" },
   { label: "Journal Checker", path: "/journal-checker" },
-  { label: "Research Analytics", path: "/research-analytics" },
-  { label: "More Features", path: "/more-features" },
 ];
 
   const viewItems = [
