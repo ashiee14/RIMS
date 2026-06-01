@@ -677,11 +677,11 @@ export const fetchUserDashboard = async (id) => {
    Journal Check API
 ──────────────────────────────────────────────────────────────── */
 
-export const checkJournal = async (issn) => {
+export const checkJournal = async (query) => {
   const res = await API.get(
     "/publications/journal/check/",
     {
-      params: { issn },
+      params: { q: query },
     }
   );
 

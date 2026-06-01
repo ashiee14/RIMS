@@ -89,73 +89,51 @@ const JournalCheckerPage = () => {
         >
           <input
             type="text"
-            placeholder="Enter ISSN (e.g. 1234-5678)"
+            placeholder="Enter journal name, ISSN (e.g. 0140-6736), or OpenAlex ID (e.g. S12345)"
             value={journal}
             onChange={(e) => setJournal(e.target.value)}
-            style={{
-              width: "100%",
-              padding: 10,
-              borderRadius: 8,
-              border: `1px solid ${BORDER}`,
-              marginBottom: 12,
-            }}
+            onKeyDown={(e) => e.key === "Enter" && handleCheck()}
+            style={{ width: "100%", padding: 10, borderRadius: 8, border: `1px solid ${BORDER}`, marginBottom: 12, color: "#fff", background: "rgba(255,255,255,0.07)" }}
           />
 
-          <button
-              onClick={handleCheck}
-            >
-              Check Journal
-            </button>
+          <button onClick={handleCheck} style={{ background: CRIMSON, color: "#fff", border: "none", padding: "9px 20px", borderRadius: 8, cursor: "pointer", fontWeight: 500 }}>
+            {loading ? "Checking…" : "Check Journal"}
+          </button>
 
-            {loading && (
-              <p style={{ marginTop: 12 }}>
-                Checking journal...
-              </p>
-            )}
-
-            {error && (
-              <p
-                style={{
-                  marginTop: 12,
-                  color: "red",
-                }}
-              >
-                {error}
-              </p>
-            )}
-
-            {result && (
-              <div style={{ marginTop: 16 }}>
-                <p>
-                  <strong>Indexed In:</strong>
-                  {result.indexed_in}
-                </p>
-
-                <p>
-                  <strong>Quartile:</strong>
-                  {result.quartile}
-                </p>
-
-                <p>
-                  <strong>Impact Factor:</strong>
-                  {result.impact_factor}
-                </p>
-
-                <p style={{ color: TEAL }}>
-                  <strong>Status:</strong>
-                  {result.verified ? "Verified" : "Not Verified"}
-                </p>
-              </div>
-            )}
+          {error && <p style={{ marginTop: 12, color: "#f87171", fontSize: 13 }}>{error}</p>}
 
           {result && (
-            <div style={{ marginTop: 16 }}>
-              <p><strong>Indexed In:</strong> {result.indexed}</p>
-              <p><strong>Quartile:</strong> {result.quartile}</p>
-              <p><strong>Impact Factor:</strong> {result.impactFactor}</p>
-              <p style={{ color: TEAL }}>
-                <strong>Status:</strong> {result.status}
-              </p>
+            <div style={{ marginTop: 20, display: "flex", flexDirection: "column", gap: 12 }}>
+              <p style={{ fontSize: 12, color: TEXT_MUTED }}>{result.count} journal{result.count !== 1 ? "s" : ""} found</p>
+              {(result.results || []).map((j, i) => (
+                <div key={i} style={{ background: "rgba(255,255,255,0.05)", border: `1px solid ${BORDER}`, borderRadius: 10, padding: 16 }}>
+                  <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 8 }}>{j.display_name}</div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 16px", fontSize: 13 }}>
+                    <span style={{ color: TEXT_MUTED }}>ISSN</span>
+                    <span>{j.issn?.join(", ") || "—"}</span>
+                    <span style={{ color: TEXT_MUTED }}>Quartile</span>
+                    <span style={{ color: j.quartile ? "#4ade80" : TEXT_MUTED }}>{j.quartile || "—"}</span>
+                    <span style={{ color: TEXT_MUTED }}>CiteScore</span>
+                    <span>{j.citescore ?? "—"}</span>
+                    <span style={{ color: TEXT_MUTED }}>Impact Factor</span>
+                    <span>{j.impact_factor ?? "—"}</span>
+                    <span style={{ color: TEXT_MUTED }}>Scopus</span>
+                    <span style={{ color: j.is_indexed_in_scopus ? "#4ade80" : "#f87171" }}>{j.is_indexed_in_scopus ? "Indexed" : "Not indexed"}</span>
+                    <span style={{ color: TEXT_MUTED }}>Web of Science</span>
+                    <span style={{ color: j.is_indexed_in_wos ? "#4ade80" : "#f87171" }}>{j.is_indexed_in_wos ? "Indexed" : "Not indexed"}</span>
+                    <span style={{ color: TEXT_MUTED }}>Open Access</span>
+                    <span>{j.is_open_access ? "Yes" : "No"}</span>
+                  </div>
+                  {j.provider_urls && (
+                    <div style={{ marginTop: 10, display: "flex", gap: 10, flexWrap: "wrap" }}>
+                      {j.provider_urls.homepage && <a href={j.provider_urls.homepage} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: TEAL }}>Homepage ↗</a>}
+                      {j.provider_urls.openalex && <a href={j.provider_urls.openalex} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: TEAL }}>OpenAlex ↗</a>}
+                      {j.provider_urls.wos && <a href={j.provider_urls.wos} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: TEAL }}>WoS ↗</a>}
+                      {j.provider_urls.scopus && <a href={j.provider_urls.scopus} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: TEAL }}>Scopus ↗</a>}
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
           )}
         </div>

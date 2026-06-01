@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import Pagination from "../components/Pagination";
 import Aurora from "../components/Aurora";
 import { COLORS } from "../styles/theme";
 import { fetchProjects, deleteProject } from "../services/api";
@@ -33,6 +34,8 @@ const ResearchPage = ({ onNav }) => {
   const [sortBy, setSortBy] = useState("date");
   const [sortDirection, setSortDirection] = useState("desc");
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [error, setError] = useState(null);
   
   const navigate = useNavigate();
@@ -158,7 +161,7 @@ const ResearchPage = ({ onNav }) => {
         }
 
 
-        const data = await fetchProjects(apiParams);
+        const data = await fetchProjects({ ...apiParams, page: currentPage });
 
         console.log("PROJECT API RESPONSE:", data);
 
@@ -194,6 +197,7 @@ const ResearchPage = ({ onNav }) => {
         }));
 
         setRows(formatted);
+        setTotalPages(data?.total_pages || 1);
       } catch (err) {
         console.error("Error fetching projects:", err);
         setError("Unable to load research projects.");
@@ -204,7 +208,7 @@ const ResearchPage = ({ onNav }) => {
     };
 
     loadData();
-  }, [appliedFilters, sortBy, sortDirection, timeFilter]);
+  }, [appliedFilters, sortBy, sortDirection, timeFilter, currentPage]);
 
  
   return (
@@ -615,6 +619,7 @@ const ResearchPage = ({ onNav }) => {
             </div>
           </div>
         </div>
+      <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={(p) => { setCurrentPage(p); window.scrollTo(0, 0); }} />
       </div>
 
       {/* Scoped Styles */}
