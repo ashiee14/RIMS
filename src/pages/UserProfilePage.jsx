@@ -518,6 +518,40 @@ const UserProfilePage = () => {
                     {pubs.length} publications
                   </span>
                   <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    {isOwnProfile && !isViewer && (
+                      <div
+                        title="Export to Excel"
+                        onClick={async () => {
+                          try {
+                            const token = localStorage.getItem("access_token");
+                            const res = await fetch(`${import.meta.env.VITE_API_URL}/publications/mine/export/`, {
+                              headers: { Authorization: `Bearer ${token}` },
+                            });
+                            if (!res.ok) throw new Error(`Error: ${res.status}`);
+                            const blob = await res.blob();
+                            const a = document.createElement("a");
+                            a.href = URL.createObjectURL(blob);
+                            a.download = "my_publications.xlsx";
+                            a.click();
+                            URL.revokeObjectURL(a.href);
+                          } catch (err) {
+                            alert("Export failed: " + err.message);
+                          }
+                        }}
+                        style={{
+                          background: "rgba(255,255,255,0.08)",
+                          border: `1px solid ${BORDER}`,
+                          borderRadius: 999,
+                          padding: "8px 12px",
+                          fontSize: 12,
+                          color: "#fff",
+                          cursor: "pointer",
+                          userSelect: "none",
+                        }}
+                      >
+                        ⬇ Export
+                      </div>
+                    )}
                     <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} style={selectStyle}>
                       <option value="latest">Latest</option>
                       <option value="oldest">Oldest</option>
