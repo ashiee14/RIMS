@@ -410,14 +410,6 @@ const UserProfilePage = () => {
             {orcidError && <div style={{ fontSize: 12, color: "#f87171", marginTop: 6 }}>{orcidError}</div>}
           </div>
 
-          {/* Edit button */}
-          <button onClick={() => console.log("Edit Profile")} style={{
-            flexShrink: 0, padding: "8px 18px", borderRadius: 10, fontSize: 13,
-            background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.18)",
-            color: "#fff", cursor: "pointer",
-          }}>
-            Edit Profile ↗
-          </button>
         </div>
 
         {(!isViewer || !isOwnProfile) && <>
