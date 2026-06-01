@@ -219,7 +219,7 @@ const UserProfilePage = () => {
       if (response.status === "linked") {
         navigate("/dashboard");
       } else if (response.status === "not_found") {
-        setOrcidError("Your ORCID is not registered in RIMS. You remain a viewer.");
+        setOrcidError("Your ORCID is not registered. You remain a viewer.");
       }
 
       setOrcidInput("");
@@ -354,7 +354,7 @@ const UserProfilePage = () => {
               {profile?.designation || (profile?.role ? profile.role.charAt(0).toUpperCase() + profile.role.slice(1) : "Faculty")}
             </div>
             <div style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", marginBottom: 14 }}>
-              {profile?.department?.name || "Unknown Department"} · {profile?.institution?.name || "Unknown Institution"}
+              {profile?.institution?.name || "Techno India University"} <br></br>
               {profile?.email && <span style={{ marginLeft: 12 }}>{profile.email}</span>}
             </div>
 
