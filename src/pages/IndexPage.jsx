@@ -282,74 +282,73 @@ function ChartsRow({
 
       {/* Donut & SDG */}
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        <div style={glassCard}>
-          {/* Title */}
-          <div style={{ marginBottom: 12 }}>
-            <div style={{ fontWeight: 600, color: "#fff", fontSize: 14, letterSpacing: "0.01em" }}>
-              Quartile Distribution
-            </div>
-            {(() => {
-              const t = quartileData.reduce((s, d) => s + d.value, 0);
-              return t > 0 ? (
-                <div style={{ color: "rgba(255,255,255,0.42)", fontSize: 11, marginTop: 2 }}>
-                  {t.toLocaleString()} publications ranked
+        {(() => {
+          const total = quartileData.reduce((s, d) => s + d.value, 0);
+          return (
+            <div style={glassCard} className="quartile-card">
+              {/* Header */}
+              <div style={{ marginBottom: 12 }}>
+                <div style={{ fontWeight: 600, color: "#fff", fontSize: 14, letterSpacing: "0.01em" }}>
+                  Quartile Distribution
                 </div>
-              ) : null;
-            })()}
-          </div>
+                {total > 0 && (
+                  <div style={{ color: "rgba(255,255,255,0.42)", fontSize: 11, marginTop: 2 }}>
+                    {total.toLocaleString()} publications ranked
+                  </div>
+                )}
+              </div>
 
-          {/* Donut chart centered with total inside */}
-          {(() => {
-            const t = quartileData.reduce((s, d) => s + d.value, 0);
-            return (
-              <div style={{ display: "flex", justifyContent: "center", position: "relative", marginBottom: 14 }}>
-                <DonutChart data={quartileData} size={130} innerFill="rgba(12,8,24,0.85)" />
-                {t > 0 && (
+              {/* Donut with spin-in animation */}
+              <div style={{ display: "flex", justifyContent: "center", position: "relative", marginBottom: 14 }}
+                   className="donut-anim">
+                <DonutChart data={quartileData} size={150} innerFill="rgba(12,8,24,0.85)" />
+                {total > 0 && (
                   <div style={{
                     position: "absolute", top: "50%", left: "50%",
                     transform: "translate(-50%, -50%)",
                     textAlign: "center", pointerEvents: "none",
-                  }}>
-                    <div style={{ fontSize: 17, fontWeight: 700, color: "#fff", lineHeight: 1.1 }}>
-                      {t.toLocaleString()}
+                  }} className="donut-center-anim">
+                    <div style={{ fontSize: 18, fontWeight: 700, color: "#fff", lineHeight: 1.1 }}>
+                      {total.toLocaleString()}
                     </div>
-                    <div style={{ fontSize: 9, color: "rgba(255,255,255,0.4)", marginTop: 2, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                    <div style={{ fontSize: 9, color: "rgba(255,255,255,0.4)", marginTop: 2, letterSpacing: "0.07em", textTransform: "uppercase" }}>
                       Total
                     </div>
                   </div>
                 )}
               </div>
-            );
-          })()}
 
-          {/* Legend with progress bars + percentages */}
-          {(() => {
-            const t = quartileData.reduce((s, d) => s + d.value, 0);
-            if (!t) return null;
-            return (
-              <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
-                {quartileData.map((d) => {
-                  const pct = Math.round((d.value / t) * 100);
-                  return (
-                    <div key={d.label} style={{ display: "flex", alignItems: "center", gap: 7 }}>
-                      <div style={{ width: 9, height: 9, borderRadius: 2, background: d.color, flexShrink: 0 }} />
-                      <span style={{ fontSize: 12, color: "rgba(255,255,255,0.65)", width: 34, flexShrink: 0 }}>{d.label}</span>
-                      <div style={{ flex: 1, height: 4, background: "rgba(255,255,255,0.08)", borderRadius: 999, overflow: "hidden" }}>
-                        <div style={{ height: "100%", width: `${pct}%`, background: d.color, borderRadius: 999 }} />
+              {/* Compact 2-column legend */}
+              {total > 0 && (
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "7px 8px" }}>
+                  {quartileData.map((d, i) => {
+                    const pct = Math.round((d.value / total) * 100);
+                    return (
+                      <div
+                        key={d.label}
+                        style={{
+                          gridColumn: d.label === "None" ? "1 / -1" : "auto",
+                          display: "flex", alignItems: "center", gap: 6,
+                          animationDelay: `${0.45 + i * 0.07}s`,
+                        }}
+                        className="legend-item-anim"
+                      >
+                        <div style={{ width: 8, height: 8, borderRadius: 2, background: d.color, flexShrink: 0 }} />
+                        <span style={{ fontSize: 11, color: "rgba(255,255,255,0.58)", flexShrink: 0 }}>{d.label}</span>
+                        <span style={{ fontSize: 12, fontWeight: 600, color: "#fff", marginLeft: "auto" }}>
+                          {d.value.toLocaleString()}
+                        </span>
+                        <span style={{ fontSize: 10, color: "rgba(255,255,255,0.36)", flexShrink: 0, marginLeft: 4 }}>
+                          {pct}%
+                        </span>
                       </div>
-                      <span style={{ fontSize: 11, fontWeight: 600, color: "#fff", width: 38, textAlign: "right", flexShrink: 0 }}>
-                        {d.value.toLocaleString()}
-                      </span>
-                      <span style={{ fontSize: 10, color: "rgba(255,255,255,0.38)", width: 26, textAlign: "right", flexShrink: 0 }}>
-                        {pct}%
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            );
-          })()}
-        </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })()}
 
         <div style={glassCard}>
           <div style={{ color: "#fff", marginBottom: 8 }}>
@@ -861,6 +860,26 @@ export default function IndexPage() {
           padding: clamp(16px, 3vw, 28px);
           max-width: 1400px;
           margin: 0 auto;
+        }
+
+        @keyframes donutSpinIn {
+          from { transform: scale(0.55) rotate(-80deg); opacity: 0; }
+          to   { transform: scale(1)   rotate(0deg);   opacity: 1; }
+        }
+        @keyframes fadeUp {
+          from { transform: translateY(8px); opacity: 0; }
+          to   { transform: translateY(0);   opacity: 1; }
+        }
+
+        .donut-anim {
+          animation: donutSpinIn 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+        .donut-center-anim {
+          animation: fadeUp 0.4s ease 0.55s both;
+        }
+        .legend-item-anim {
+          animation: fadeUp 0.35s ease both;
+          opacity: 0;
         }
       `}</style>
     </div>
