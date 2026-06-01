@@ -30,6 +30,18 @@ import {
 
 
 /* ────────────────────────────────────────────────────────────────
+   Helpers
+──────────────────────────────────────────────────────────────── */
+function fmtFunding(raw) {
+  const n = parseFloat(raw) || 0;
+  if (n === 0) return "—";
+  if (n >= 10_000_000) return `₹${(n / 10_000_000).toFixed(2)} Cr`;
+  if (n >= 100_000)    return `₹${(n / 100_000).toFixed(1)} L`;
+  if (n >= 1_000)      return `₹${(n / 1_000).toFixed(0)}K`;
+  return `₹${n}`;
+}
+
+/* ────────────────────────────────────────────────────────────────
    Glassmorphism Style
 ──────────────────────────────────────────────────────────────── */
 const glassCard = {
@@ -76,7 +88,7 @@ const STAT_ICONS = {
 const STAT_CONFIG = [
   { key: "publications", label: "TOTAL PUBLICATIONS",   iconColor: "#38bdf8", iconBg: "rgba(56,189,248,0.14)" },
   { key: "citations",    label: "TOTAL CITATIONS",      iconColor: "#34d399", iconBg: "rgba(52,211,153,0.14)" },
-  { key: "funding",      label: "RESEARCH PROJECTS",    iconColor: "#fb923c", iconBg: "rgba(251,146,60,0.14)"  },
+  { key: "funding",      label: "RESEARCH FUNDING",      iconColor: "#fb923c", iconBg: "rgba(251,146,60,0.14)"  },
   { key: "impact",       label: "AVG IMPACT FACTOR",    iconColor: "#a78bfa", iconBg: "rgba(167,139,250,0.14)" },
   { key: "awards",       label: "TOTAL AWARDS",         iconColor: "#fbbf24", iconBg: "rgba(251,191,36,0.14)"  },
 ];
@@ -90,7 +102,7 @@ function TopStatsRow({ stats, totalUsers }) {
   const values = {
     publications: (stats.totalPublications ?? 0).toLocaleString(),
     citations:    (stats.totalCitations    ?? 0).toLocaleString(),
-    funding:      (stats.totalProjects     ?? 0).toLocaleString(),
+    funding:      fmtFunding(stats.totalFunding ?? "0"),
     impact:       stats.impactFactor?.average ?? "—",
     awards:       (stats.totalAwards       ?? 0).toLocaleString(),
   };
@@ -677,8 +689,8 @@ export default function IndexPage() {
       totalAwards:
         dashboardData.awards?.total || 0,
 
-      totalProjects:
-        dashboardData.projects?.total || 0,
+      totalFunding:
+        dashboardData.projects?.total_funding || "0",
 
       indexedPublications:
         dashboardData.publications?.total || 0,
@@ -793,8 +805,19 @@ export default function IndexPage() {
     ]
   : [];
 
-  const realTrendData =
-  dashboardData?.publications?.by_year || [];
+  // Merge citations_by_year into by_year so TrendChart gets {year, count, citations}
+  const realTrendData = (() => {
+    const byYear = dashboardData?.publications?.by_year || [];
+    const citMap = {};
+    (dashboardData?.publications?.citations_by_year || []).forEach((d) => {
+      citMap[d.year] = d.count;
+    });
+    return byYear.map((d) => ({
+      year: d.year,
+      count: d.count,
+      citations: citMap[d.year] ?? null,
+    }));
+  })();
 
   const realCitationTotals = dashboardData
   ? {
