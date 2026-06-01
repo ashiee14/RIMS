@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import Aurora from "../components/Aurora";
-import { COLORS } from "../styles/theme";
+import { COLORS, FONT } from "../styles/theme";
 import { fetchPublicationById } from "../services/api";
 
 const {
@@ -59,7 +59,10 @@ const PublicationDetailsPage = () => {
           <div className="message">Publication not found.</div>
         ) : (
           <div className="details-card">
-            <h1>{publication.title}</h1>
+            <h1 style={{color: "#fff",
+                                textShadow: "0 2px 2px CRIMSON",
+                                fontFamily: FONT?.serif,
+                                fontSize: "clamp(28px, 4vw, 40px)",}}>{publication.title}</h1>
 
             {/* Quality badges */}
             <div className="detail-badges">
