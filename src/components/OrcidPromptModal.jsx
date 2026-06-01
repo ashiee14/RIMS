@@ -24,13 +24,13 @@ const OrcidPromptModal = ({ onDismiss }) => {
         setStep("success");
         setTimeout(() => onDismiss(true), 1500);
       } else {
-        setErrorMsg(data.detail || "Your ORCID is not registered in RIMS. You remain a viewer.");
+        setErrorMsg(data.detail || "Your ORCID is not registered. You remain a viewer.");
         setStep("not_found");
       }
     } catch (err) {
       const detail =
         err.response?.data?.detail ||
-        "Your ORCID is not registered in RIMS. You remain a viewer.";
+        "Your ORCID is not registered. You remain a viewer.";
       setErrorMsg(detail);
       setStep("not_found");
     } finally {

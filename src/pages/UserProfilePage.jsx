@@ -350,10 +350,10 @@ const UserProfilePage = () => {
             <h1 style={{ fontSize: 24, fontWeight: 700, color: "#fff", margin: "0 0 4px" }}>
               {profile?.full_name}
             </h1>
-            <div style={{ fontSize: 14, color: "#a78bfa", fontWeight: 500, marginBottom: 4 }}>
+            <div style={{ fontSize: 14, color: "#ffffff", fontWeight: 500, marginBottom: 4 }}>
               {profile?.designation || (profile?.role ? profile.role.charAt(0).toUpperCase() + profile.role.slice(1) : "Faculty")}
             </div>
-            <div style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", marginBottom: 14 }}>
+            <div style={{ fontSize: 13, color: "rgb(255, 255, 255)", marginBottom: 14 }}>
               {profile?.institution?.name || "Techno India University"} <br></br>
               {profile?.email && <span style={{ marginLeft: 12 }}>{profile.email}</span>}
             </div>

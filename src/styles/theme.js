@@ -2,7 +2,7 @@
 
 export const COLORS = {
   text: "#0f172a",
-  textMuted: "#6b7280",
+  textMuted: "#ffffff",
   border: "#e5e7eb",
   crimson: "#2200a8",
   crimsonLight: "#ff6b81",
