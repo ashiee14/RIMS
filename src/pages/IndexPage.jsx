@@ -510,55 +510,7 @@ function TopPublicationsTable({ pubs, loading, onRowClick }) {
    Institutional Table
 ──────────────────────────────────────────────────────────────── */
 function InstitutionalTable({ colleges }) {
-  return (
-    <div style={tableCard}>
-      <div style={{ overflowX: "auto" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr style={{ background: "rgba(180,0,0,0.85)" }}>
-              {["#", "College", "Total Pubs", "Indexed Pubs", "Total Citations", "Avg Impact Factor", "Q1 | Q2 | Q3 | Q4 | None"].map((h) => (
-                <th key={h} style={TH}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {colleges.map((c, i) => {
-              const { q1, q2, q3, q4, none } = c.quartiles;
-              return (
-                <tr
-                  key={c.id}
-                  style={{
-                    background: i % 2 === 1 ? "rgba(255,255,255,0.02)" : "transparent",
-                    transition: "background 0.15s",
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.07)")}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = i % 2 === 1 ? "rgba(255,255,255,0.02)" : "transparent")}
-                >
-                  <td style={{ ...TD, color: "rgba(255,255,255,0.35)", width: 36, fontWeight: 600 }}>{c.id}</td>
-                  <td style={{ ...TD, fontWeight: 500, color: "#fff" }}>{c.name}</td>
-                  <td style={TD}>{c.totalPublications.toLocaleString()}</td>
-                  <td style={TD}>{c.indexedBreakdown.total.toLocaleString()}</td>
-                  <td style={TD}>{c.totalCitations.toLocaleString()}</td>
-                  <td style={{ ...TD, fontWeight: 600, color: "#fff" }}>{c.avgImpactFactor}</td>
-                  <td style={TD}>
-                    <span style={{ color: "#ff8888" }}>{q1}</span>
-                    {" | "}
-                    <span style={{ color: "#5fd3bc" }}>{q2}</span>
-                    {" | "}
-                    <span style={{ color: "#f5c842" }}>{q3}</span>
-                    {" | "}
-                    <span style={{ color: "#7bb8f5" }}>{q4}</span>
-                    {" | "}
-                    <span style={{ color: "rgba(255,255,255,0.45)" }}>{none}</span>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
+   
 }
 
 /* ────────────────────────────────────────────────────────────────
@@ -843,19 +795,6 @@ export default function IndexPage() {
           loading={topPubsLoading}
           onRowClick={(id) => navigate(`/publications/${id}`)}
         />
-
-        <h2
-          style={{
-            fontFamily: FONT.serif,
-            fontSize: "22px",
-            color: "#fff",
-            margin: "20px 0 10px",
-          }}
-        >
-          Institutional Publication Overview
-        </h2>
-
-        <InstitutionalTable colleges={colleges} />
       </div>
 
       <style>{`
