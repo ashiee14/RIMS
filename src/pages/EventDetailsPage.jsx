@@ -229,6 +229,7 @@ const EventDetailsPage = () => {
         .details-card h1 {
           margin-top: 10px;
           margin-bottom: 20px;
+          line-height: 1.3;
           color: ${CRIMSON};
         }
 

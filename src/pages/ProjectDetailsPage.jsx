@@ -134,6 +134,7 @@ const ProjectDetailsPage = () => {
 
         .details-card h1 {
           margin-bottom: 24px;
+          line-height: 1.3;
           color: ${CRIMSON};
         }
 

@@ -51,7 +51,7 @@ const IPRDetailsPage = () => {
         
         {loading ? (
           <div className="message">Loading IPR...</div>
-        ) : error ? (
+        ) : error ? (   
           <div className="message">{error}</div>
         ) : !ipr ? (
           <div className="message">IPR not found.</div>
@@ -134,6 +134,7 @@ const IPRDetailsPage = () => {
 
         .details-card h1 {
           margin-bottom: 24px;
+          line-height: 1.3;
           color: ${CRIMSON};
         }
 

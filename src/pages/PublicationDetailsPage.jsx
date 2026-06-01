@@ -229,7 +229,8 @@ const PublicationDetailsPage = () => {
         }
 
         .details-card h1 {
-          margin-bottom: 16px;
+          margin-bottom: 50px;
+          line-height: 1.3;
           color: ${CRIMSON};
         }
 
