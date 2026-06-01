@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import Aurora from "../components/Aurora";
-import { COLORS } from "../styles/theme";
+import { COLORS, FONT } from "../styles/theme";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
@@ -68,7 +68,10 @@ const AwardsPage = () => {
       />
 
       <div className="aurora-content">
-        <h1 style={{ color: CRIMSON }}>Awards</h1>
+        <h1 style={{ color: "#fff",
+                    textShadow: "0 2px 2px CRIMSON",
+                    fontFamily: FONT?.serif,
+                    fontSize: "clamp(28px, 4vw, 40px)",}}>Awards</h1>
 
         <p style={{ color: TEXT_MUTED }}>
           Recognitions and achievements received.

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import Aurora from "../components/Aurora";
-import { COLORS } from "../styles/theme";
+import { COLORS,FONT } from "../styles/theme";
 import { fetchProjects, deleteProject } from "../services/api";
 import { useNavigate } from "react-router-dom";
 // Mock data for development (to be replaced with real API calls)
@@ -228,9 +228,10 @@ const ResearchPage = ({ onNav }) => {
         >
           <h1
             style={{
-              fontFamily: "'DM Serif Display', serif",
-              fontSize: 28,
-              fontWeight: 400,
+              color: "#fff",
+                          textShadow: "0 2px 2px CRIMSON",
+                          fontFamily: FONT?.serif,
+                          fontSize: "clamp(28px, 4vw, 40px)",
             }}
           >
             Research Projects

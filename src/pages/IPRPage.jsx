@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import Aurora from "../components/Aurora";
-import { COLORS } from "../styles/theme";
+import { COLORS, FONT } from "../styles/theme";
 import {
   fetchIPRs,
   updateIPR,
@@ -151,7 +151,10 @@ const handleDelete = async (id) => {
     <div className="aurora-page">
       <Aurora colorStops={["#8061fc", "#2500b7", "#000000", "#2200a8"]} amplitude={1} blend={0.5} />
       <div className="aurora-content">
-        <h1 style={{ color: CRIMSON }}>Intellectual Property Rights (IPR)</h1>
+        <h1 style={{ color: "#fff",
+                    textShadow: "0 2px 2px CRIMSON",
+                    fontFamily: FONT?.serif,
+                    fontSize: "clamp(28px, 4vw, 40px)", }}>Intellectual Property Rights (IPR)</h1>
         <p style={{ color: TEXT_MUTED }}>Patents, copyrights, and trademarks.</p>
 
         {!isViewer && (

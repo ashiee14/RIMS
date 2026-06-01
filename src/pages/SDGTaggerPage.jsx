@@ -60,8 +60,9 @@ const SDGTaggerPage = () => {
       <div className="sdg-content">
         <h1
           style={{
-            color: CRIMSON,
+            color: "#fff",
             fontFamily: FONT?.serif,
+            textShadow: "0 2px 2px CRIMSON",
             fontSize: "clamp(28px, 4vw, 40px)",
           }}
         >

@@ -67,7 +67,8 @@ const JournalCheckerPage = () => {
       <div className="journal-content">
         <h1
           style={{
-            color: CRIMSON,
+            color: "#fff",
+            textShadow: "0 2px 2px CRIMSON",
             fontFamily: FONT?.serif,
             fontSize: "clamp(28px, 4vw, 40px)",
           }}

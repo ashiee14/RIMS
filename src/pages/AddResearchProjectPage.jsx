@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import Aurora from "../components/Aurora";
-import { COLORS } from "../styles/theme";
+import { COLORS,FONT } from "../styles/theme";
 import { createProject, extractProject } from "../services/api";
 import { useNavigate } from "react-router-dom";
 
@@ -114,7 +114,10 @@ const AddResearchProjectPage = () => {
 
         {/* Page Content */}
         <div className="addresearch-content">
-          <h1 style={{ color: CRIMSON }}>Add Research Project</h1>
+          <h1 style={{ color: "#fff",
+                      textShadow: "0 2px 2px CRIMSON",
+                      fontFamily: FONT?.serif,
+                      fontSize: "clamp(28px, 4vw, 40px)", }}>Add Research Project</h1>
           <p style={{ color: TEXT_MUTED }}>
             Provide details of funded or non-funded research projects.
           </p>

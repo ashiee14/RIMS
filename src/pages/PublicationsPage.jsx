@@ -4,6 +4,7 @@ import { COLORS } from "../styles/theme";
 import { ChevronDown } from "../components/Navbar";
 import { fetchPublications } from "../services/api";
 import { useNavigate } from "react-router-dom";
+import { FONT } from "../styles/theme";
 
 const {
   crimson: CRIMSON,
@@ -338,7 +339,10 @@ const PublicationsPage = () => {
           <main className="content">
             <div className="results-row">
               <div>
-                <h1 style={{ margin: 0, fontSize: 28, fontWeight: 400 }}>
+                <h1 style={{ margin: 0, color: "#fff",
+            textShadow: "0 2px 2px CRIMSON",
+            fontFamily: FONT?.serif,
+            fontSize: "clamp(28px, 4vw, 40px)",}}>
                   Publications
                 </h1>
                 <p style={{ color: TEXT_MUTED, marginTop: 8 }}>
