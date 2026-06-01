@@ -212,16 +212,20 @@ export const getQuartileData = async () => {
 /* ────────────────────────────────────────────────────────────────
    Sustainable Development Goals (SDG)
 ──────────────────────────────────────────────────────────────── */
+const SDG_COLORS = {
+  1: "#E5243B", 2: "#DDA63A", 3: "#4C9F38", 4: "#C5192D",
+  5: "#FF3A21", 6: "#26BDE2", 7: "#FCC30B", 8: "#A21942",
+  9: "#FD6925", 10: "#DD1367", 11: "#FD9D24", 12: "#BF8B2E",
+  13: "#3F7E44", 14: "#0A97D9", 15: "#56C02B", 16: "#00689D", 17: "#19486A",
+};
+
 export const getSDGData = async () => {
-  await delay(300);
-  return [
-    { label: "SDG 3", count: 1362, color: "#E5243B", icon: "🌍" },
-    { label: "SDG 7", count: 167, color: "#FCC30B", icon: "⚡" },
-    { label: "SDG 4", count: 102, color: "#C5192D", icon: "📘" },
-    { label: "SDG 15", count: 71, color: "#3F7E44", icon: "🌳" },
-    { label: "SDG 5", count: 70, color: "#FF3A21", icon: "👩" },
-    { label: "SDG 17", count: 54, color: "#A21942", icon: "🤝" },
-  ];
+  const res = await API.get("/publications/sdg/stats/");
+  return res.data.slice(0, 6).map((d) => ({
+    label: `SDG ${d.number}`,
+    count: d.publication_count,
+    color: SDG_COLORS[d.number] || "#888",
+  }));
 };
 
 /* ────────────────────────────────────────────────────────────────

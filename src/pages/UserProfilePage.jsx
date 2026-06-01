@@ -46,6 +46,7 @@ const UserProfilePage = () => {
   }
 
   const id = paramId ? Number(paramId) : tokenId;
+  const isOwnProfile = !paramId || Number(paramId) === tokenId;
 
   const [activeTab, setActiveTab] = useState("Publications");
   
@@ -155,7 +156,6 @@ const UserProfilePage = () => {
 
       // Fetch secondary data in parallel — failures won't block the page
       const headers = { Authorization: `Bearer ${token}` };
-      const isOwnProfile = !paramId || Number(paramId) === tokenId;
 
       // If viewing another researcher's profile, publications are already in fetchedUser
       if (!isOwnProfile) {
@@ -351,7 +351,7 @@ const UserProfilePage = () => {
               {profile?.full_name}
             </h1>
             <div style={{ fontSize: 14, color: "#a78bfa", fontWeight: 500, marginBottom: 4 }}>
-              {profile?.designation || "Faculty"}
+              {profile?.designation || (profile?.role ? profile.role.charAt(0).toUpperCase() + profile.role.slice(1) : "Faculty")}
             </div>
             <div style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", marginBottom: 14 }}>
               {profile?.department?.name || "Unknown Department"} · {profile?.institution?.name || "Unknown Institution"}
@@ -420,7 +420,7 @@ const UserProfilePage = () => {
           </button>
         </div>
 
-        {!isViewer && <>
+        {(!isViewer || !isOwnProfile) && <>
         {/* ── OVERVIEW HEADER ───────────────────────────── */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
           <h2 style={{ fontSize: 16, fontWeight: 600, color: "rgba(255,255,255,0.8)", margin: 0, letterSpacing: "0.03em", textTransform: "uppercase" }}>
