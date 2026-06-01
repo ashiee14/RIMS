@@ -66,13 +66,19 @@ const STAT_ICONS = {
       <circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/>
     </svg>
   ),
+  funding: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/>
+    </svg>
+  ),
 };
 
 const STAT_CONFIG = [
-  { key: "publications", label: "TOTAL PUBLICATIONS",  iconColor: "#38bdf8", iconBg: "rgba(56,189,248,0.14)" },
-  { key: "citations",    label: "TOTAL CITATIONS",     iconColor: "#34d399", iconBg: "rgba(52,211,153,0.14)" },
-  { key: "impact",       label: "AVG IMPACT FACTOR",   iconColor: "#a78bfa", iconBg: "rgba(167,139,250,0.14)" },
-  { key: "awards",       label: "TOTAL AWARDS",        iconColor: "#fbbf24", iconBg: "rgba(251,191,36,0.14)" },
+  { key: "publications", label: "TOTAL PUBLICATIONS",   iconColor: "#38bdf8", iconBg: "rgba(56,189,248,0.14)" },
+  { key: "citations",    label: "TOTAL CITATIONS",      iconColor: "#34d399", iconBg: "rgba(52,211,153,0.14)" },
+  { key: "funding",      label: "RESEARCH PROJECTS",    iconColor: "#fb923c", iconBg: "rgba(251,146,60,0.14)"  },
+  { key: "impact",       label: "AVG IMPACT FACTOR",    iconColor: "#a78bfa", iconBg: "rgba(167,139,250,0.14)" },
+  { key: "awards",       label: "TOTAL AWARDS",         iconColor: "#fbbf24", iconBg: "rgba(251,191,36,0.14)"  },
 ];
 
 /* ────────────────────────────────────────────────────────────────
@@ -84,6 +90,7 @@ function TopStatsRow({ stats, totalUsers }) {
   const values = {
     publications: (stats.totalPublications ?? 0).toLocaleString(),
     citations:    (stats.totalCitations    ?? 0).toLocaleString(),
+    funding:      (stats.totalProjects     ?? 0).toLocaleString(),
     impact:       stats.impactFactor?.average ?? "—",
     awards:       (stats.totalAwards       ?? 0).toLocaleString(),
   };
@@ -278,7 +285,7 @@ function ChartsRow({
     <div
       style={{
         display: "grid",
-        gridTemplateColumns: "1fr minmax(200px, 0.45fr)",
+        gridTemplateColumns: "1fr minmax(240px, 0.48fr)",
         gap: 12,
         marginBottom: 14,
       }}
@@ -369,33 +376,39 @@ function ChartsRow({
           );
         })()}
 
-        <div style={glassCard}>
-          <div style={{ color: "#fff", marginBottom: 8 }}>
-            Sustainable Development Goals
-          </div>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: 6,
-            }}
-          >
-            {sdgData.map((d) => (
-              <div
-                key={d.label}
-                style={{
-                  background: d.color,
-                  borderRadius: RADIUS.md,
-                  padding: "8px",
-                  color: "#fff",
-                }}
-              >
-                <strong>{d.count}</strong>
-                <div style={{ fontSize: 10 }}>{d.label}</div>
+        {sdgData?.length > 0 && (
+          <div style={glassCard}>
+            <div style={{ fontWeight: 600, color: "#fff", fontSize: 14, marginBottom: 14, letterSpacing: "0.01em" }}>
+              SDG Contribution Mapping
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+              {/* Colorful pie/donut */}
+              <div style={{ flexShrink: 0 }} className="donut-anim">
+                <DonutChart
+                  data={sdgData.map((d) => ({ ...d, value: d.count }))}
+                  size={128}
+                  innerFill="rgba(12,8,24,0.8)"
+                  innerRatio={0.18}
+                />
               </div>
-            ))}
+              {/* Legend */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 9, flex: 1 }}>
+                {sdgData.map((d, i) => (
+                  <div key={d.label} style={{ display: "flex", alignItems: "center", gap: 8, animationDelay: `${0.3 + i * 0.06}s` }}
+                    className="legend-item-anim">
+                    <div style={{ width: 10, height: 10, borderRadius: "50%", background: d.color, flexShrink: 0 }} />
+                    <span style={{ fontSize: 11.5, color: "rgba(255,255,255,0.72)" }}>
+                      {d.label}
+                    </span>
+                    <span style={{ fontSize: 11, fontWeight: 600, color: "#fff", marginLeft: "auto" }}>
+                      {d.count}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
@@ -664,6 +677,9 @@ export default function IndexPage() {
       totalAwards:
         dashboardData.awards?.total || 0,
 
+      totalProjects:
+        dashboardData.projects?.total || 0,
+
       indexedPublications:
         dashboardData.publications?.total || 0,
 
@@ -918,9 +934,10 @@ export default function IndexPage() {
           opacity: 0;
         }
         .stat-card-anim:nth-child(1) { animation-delay: 0.05s; }
-        .stat-card-anim:nth-child(2) { animation-delay: 0.12s; }
-        .stat-card-anim:nth-child(3) { animation-delay: 0.19s; }
-        .stat-card-anim:nth-child(4) { animation-delay: 0.26s; }
+        .stat-card-anim:nth-child(2) { animation-delay: 0.11s; }
+        .stat-card-anim:nth-child(3) { animation-delay: 0.17s; }
+        .stat-card-anim:nth-child(4) { animation-delay: 0.23s; }
+        .stat-card-anim:nth-child(5) { animation-delay: 0.29s; }
 
         /* LIVE dot pulse */
         .live-dot {
