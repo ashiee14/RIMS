@@ -12,7 +12,6 @@ import {
 
 import {
   DonutChart,
-  DonutLegend,
   TrendChart,
 } from "../components/Charts";
 
@@ -284,20 +283,72 @@ function ChartsRow({
       {/* Donut & SDG */}
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         <div style={glassCard}>
-          <div
-            style={{
-              textAlign: "center",
-              fontWeight: 600,
-              color: "#fff",
-              marginBottom: 10,
-            }}
-          >
-            Quartiles
+          {/* Title */}
+          <div style={{ marginBottom: 12 }}>
+            <div style={{ fontWeight: 600, color: "#fff", fontSize: 14, letterSpacing: "0.01em" }}>
+              Quartile Distribution
+            </div>
+            {(() => {
+              const t = quartileData.reduce((s, d) => s + d.value, 0);
+              return t > 0 ? (
+                <div style={{ color: "rgba(255,255,255,0.42)", fontSize: 11, marginTop: 2 }}>
+                  {t.toLocaleString()} publications ranked
+                </div>
+              ) : null;
+            })()}
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <DonutChart data={quartileData} size={100} />
-            <DonutLegend data={quartileData} />
-          </div>
+
+          {/* Donut chart centered with total inside */}
+          {(() => {
+            const t = quartileData.reduce((s, d) => s + d.value, 0);
+            return (
+              <div style={{ display: "flex", justifyContent: "center", position: "relative", marginBottom: 14 }}>
+                <DonutChart data={quartileData} size={130} innerFill="rgba(12,8,24,0.85)" />
+                {t > 0 && (
+                  <div style={{
+                    position: "absolute", top: "50%", left: "50%",
+                    transform: "translate(-50%, -50%)",
+                    textAlign: "center", pointerEvents: "none",
+                  }}>
+                    <div style={{ fontSize: 17, fontWeight: 700, color: "#fff", lineHeight: 1.1 }}>
+                      {t.toLocaleString()}
+                    </div>
+                    <div style={{ fontSize: 9, color: "rgba(255,255,255,0.4)", marginTop: 2, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                      Total
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+
+          {/* Legend with progress bars + percentages */}
+          {(() => {
+            const t = quartileData.reduce((s, d) => s + d.value, 0);
+            if (!t) return null;
+            return (
+              <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+                {quartileData.map((d) => {
+                  const pct = Math.round((d.value / t) * 100);
+                  return (
+                    <div key={d.label} style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                      <div style={{ width: 9, height: 9, borderRadius: 2, background: d.color, flexShrink: 0 }} />
+                      <span style={{ fontSize: 12, color: "rgba(255,255,255,0.65)", width: 34, flexShrink: 0 }}>{d.label}</span>
+                      <div style={{ flex: 1, height: 4, background: "rgba(255,255,255,0.08)", borderRadius: 999, overflow: "hidden" }}>
+                        <div style={{ height: "100%", width: `${pct}%`, background: d.color, borderRadius: 999 }} />
+                      </div>
+                      <span style={{ fontSize: 11, fontWeight: 600, color: "#fff", width: 38, textAlign: "right", flexShrink: 0 }}>
+                        {d.value.toLocaleString()}
+                      </span>
+                      <span style={{ fontSize: 10, color: "rgba(255,255,255,0.38)", width: 26, textAlign: "right", flexShrink: 0 }}>
+                        {pct}%
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
         </div>
 
         <div style={glassCard}>

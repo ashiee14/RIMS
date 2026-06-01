@@ -1,12 +1,11 @@
-import { COLORS } from "../../styles/theme";
-export function DonutChart({ data = [], size = 110 }) {
+export function DonutChart({ data = [], size = 110, innerFill = "transparent" }) {
   const total = data.reduce((s, d) => s + d.value, 0);
   if (total === 0) return null;
 
   let cum = 0;
   const cx = size / 2, cy = size / 2;
-  const r  = size * 0.38;
-  const ir = size * 0.24;
+  const r  = size * 0.42;
+  const ir = size * 0.27;
 
   const slices = data.map((d) => {
     const start = (cum / total) * 360;
@@ -31,11 +30,11 @@ export function DonutChart({ data = [], size = 110 }) {
   return (
     <svg width={size} height={size} style={{ flexShrink: 0 }}>
       {slices.map((s, i) => (
-        <path key={i} d={s.path} fill={s.color}>
+        <path key={i} d={s.path} fill={s.color} opacity={0.92}>
           <title>{s.label}: {s.value}</title>
         </path>
       ))}
-      <circle cx={cx} cy={cy} r={ir - 2} fill={COLORS.cardBg} />
+      <circle cx={cx} cy={cy} r={ir - 1} fill={innerFill} />
     </svg>
   );
 }
