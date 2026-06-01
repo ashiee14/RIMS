@@ -155,16 +155,22 @@ const UserProfilePage = () => {
 
       // Fetch secondary data in parallel — failures won't block the page
       const headers = { Authorization: `Bearer ${token}` };
+      const isOwnProfile = !paramId || Number(paramId) === tokenId;
+
+      // If viewing another researcher's profile, publications are already in fetchedUser
+      if (!isOwnProfile) {
+        setPubs(fetchedUser.publications || []);
+      }
 
       const [pubRes, statsRes, , confRes, awardsRes] = await Promise.allSettled([
-        isViewer ? Promise.resolve(null) : fetchMyPublications(),
-        isViewer ? Promise.resolve(null) : axios.get(`${API_BASE}/publications/stats/`, { headers }),
-        isViewer ? Promise.resolve(null) : fetchPublicationMetrics().then(setUserMetrics).catch(() => {}),
+        isOwnProfile && !isViewer ? fetchMyPublications() : Promise.resolve(null),
+        isOwnProfile && !isViewer ? axios.get(`${API_BASE}/publications/stats/`, { headers }) : Promise.resolve(null),
+        isOwnProfile && !isViewer ? fetchPublicationMetrics().then(setUserMetrics).catch(() => {}) : Promise.resolve(null),
         axios.get(`${API_BASE}/events/`, { headers }),
         axios.get(`${API_BASE}/awards/`, { headers }),
       ]);
 
-      if (pubRes.status === "fulfilled" && pubRes.value != null)
+      if (isOwnProfile && pubRes.status === "fulfilled" && pubRes.value != null)
         setPubs(pubRes.value.results || pubRes.value);
 
       if (statsRes.status === "fulfilled" && statsRes.value != null)
