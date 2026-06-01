@@ -21,7 +21,7 @@ const AddResearchProjectPage = () => {
     title: "",
     description: "",
     department_id: "",
-    funding_agency_id: "",
+    funding_agency: "",
     amount: "",
     start_date: "",
     end_date: "",
@@ -56,6 +56,7 @@ const AddResearchProjectPage = () => {
         setFormData((prev) => ({
           ...prev,
           title: data.title || prev.title,
+          funding_agency: data.funding_agency || prev.funding_agency,
           amount: data.amount || prev.amount,
           start_date: data.start_date || prev.start_date,
           end_date: data.end_date || prev.end_date,
@@ -85,7 +86,7 @@ const AddResearchProjectPage = () => {
             title: "",
             description: "",
             department_id: "",
-            funding_agency_id: "",
+            funding_agency: "",
             amount: "",
             start_date: "",
             end_date: "",
@@ -143,6 +144,7 @@ const AddResearchProjectPage = () => {
               type="text"
               name="title"
               placeholder="Project Title"
+              value={formData.title}
               onChange={handleChange}
               required
             />
@@ -150,6 +152,7 @@ const AddResearchProjectPage = () => {
             <textarea
               name="description"
               placeholder="Project Description"
+              value={formData.description}
               onChange={handleChange}
             />
 
@@ -159,14 +162,16 @@ const AddResearchProjectPage = () => {
                 type="number"
                 name="department_id"
                 placeholder="Department ID"
+                value={formData.department_id}
                 onChange={handleChange}
                 required
               />
 
               <input
-                type="number"
-                name="funding_agency_id"
-                placeholder="Funding Agency ID"
+                type="text"
+                name="funding_agency"
+                placeholder="Funding Agency"
+                value={formData.funding_agency}
                 onChange={handleChange}
               />
 
@@ -178,10 +183,11 @@ const AddResearchProjectPage = () => {
                 type="number"
                 name="amount"
                 placeholder="Funding Amount"
+                value={formData.amount}
                 onChange={handleChange}
               />
 
-              <select name="status" onChange={handleChange}>
+              <select name="status" value={formData.status} onChange={handleChange}>
                 <option value="active">Active</option>
                 <option value="completed">Completed</option>
                 <option value="proposed">Proposed</option>
@@ -194,12 +200,14 @@ const AddResearchProjectPage = () => {
               <input
                 type="date"
                 name="start_date"
+                value={formData.start_date}
                 onChange={handleChange}
               />
 
               <input
                 type="date"
                 name="end_date"
+                value={formData.end_date}
                 onChange={handleChange}
               />
 
