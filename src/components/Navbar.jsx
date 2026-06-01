@@ -17,12 +17,12 @@ export const Logo = ({ size = 22 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <path
       d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"
-      fill={CRIMSON}
+      fill="#fff"
       opacity="0.15"
     />
     <path
       d="M12 6v12M6 12h12M8.5 8.5l7 7M15.5 8.5l-7 7"
-      stroke={CRIMSON}
+      stroke="#fff"
       strokeWidth="1.5"
       strokeLinecap="round"
     />
@@ -247,7 +247,7 @@ export default function Navbar() {
           style={{
             fontWeight: 700,
             fontSize: 15,
-            color: CRIMSON,
+            color: "#fff",
           }}
         >
           RIMS
