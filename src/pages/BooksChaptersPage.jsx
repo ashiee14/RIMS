@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Pagination from "../components/Pagination";
 import Aurora from "../components/Aurora";
 import { COLORS, FONT } from "../styles/theme";
 import { useNavigate } from "react-router-dom";
@@ -27,6 +28,8 @@ const inputStyle = {
 const BooksChaptersPage = () => {
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [editingBookId, setEditingBookId] = useState(null);
   const { role } = useAuth();
   const isViewer = role === "viewer";
@@ -46,35 +49,9 @@ const BooksChaptersPage = () => {
       try {
         setLoading(true);
 
-        let allBooks = [];
-
-        let page = 1;
-
-        while (true) {
-
-          const data = await fetchBooks({
-            page,
-          });
-
-          console.log("BOOK PAGE:", data);
-
-          allBooks = [
-            ...allBooks,
-            ...(data.results || []),
-          ];
-
-          if (!data.next) {
-            break;
-          }
-
-          page++;
-        }
-
-        const sortedBooks = allBooks.sort(
-          (a, b) => b.id - a.id
-        );
-
-        setBooks(sortedBooks);
+        const data = await fetchBooks({ page: currentPage });
+        setBooks(data.results || []);
+        setTotalPages(data.total_pages || 1);
 
       } catch (error) {
 
@@ -89,7 +66,7 @@ const BooksChaptersPage = () => {
     };
 
     loadBooks();
-  }, []);
+  }, [currentPage]);
 
 
 
@@ -352,6 +329,7 @@ const handleUpdateBook = async () => {
           ))}
         </div>
       )}
+      <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={(p) => { setCurrentPage(p); window.scrollTo(0, 0); }} />
     </div>
 
     <style>{`

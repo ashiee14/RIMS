@@ -3,6 +3,7 @@ import Aurora from "../components/Aurora";
 import { COLORS, FONT } from "../styles/theme";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import Pagination from "../components/Pagination";
 
 const {
   crimson: CRIMSON,
@@ -12,6 +13,8 @@ const {
 const AwardsPage = () => {
   const [awards, setAwards] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   const navigate = useNavigate();
   const { role } = useAuth();
@@ -31,22 +34,13 @@ const AwardsPage = () => {
 
         console.log("TOKEN:", token);
 
-        const response = await fetch("https://rims-api.prerna.sh/api/awards/", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/awards/?page=${currentPage}`, {
+          headers: { Authorization: `Bearer ${token}` },
         });
 
         const data = await response.json();
-
-        console.log("AWARDS STATUS:", response.status);
-        console.log("AWARDS DATA:", data);
-
-        const awardsArray = Array.isArray(data)
-          ? data
-          : data.results || [];
-
-        setAwards(awardsArray);
+        setAwards(Array.isArray(data) ? data : data.results || []);
+        setTotalPages(data?.total_pages || 1);
 
       } catch (error) {
         console.error("Error fetching awards:", error);
@@ -57,7 +51,7 @@ const AwardsPage = () => {
     };
 
     loadAwards();
-  }, []);
+  }, [currentPage]);
 
   return (
     <div className="aurora-page">
@@ -121,6 +115,7 @@ const AwardsPage = () => {
             ))}
           </div>
         )}
+        <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={(p) => { setCurrentPage(p); window.scrollTo(0, 0); }} />
       <style>{`
   .aurora-page {
     position: relative;

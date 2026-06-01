@@ -4,6 +4,7 @@ import { COLORS } from "../styles/theme";
 import { ChevronDown } from "../components/Navbar";
 import { fetchPublications } from "../services/api";
 import { useNavigate } from "react-router-dom";
+import Pagination from "../components/Pagination";
 import { FONT } from "../styles/theme";
 
 const {
@@ -61,6 +62,7 @@ const PublicationsPage = () => {
 
   const [pubs, setPubs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
   const [error, setError] = useState(null);
   const [selections, setSelections] = useState(defaultSelections);
   const [appliedSelections, setAppliedSelections] = useState(defaultSelections);
@@ -73,6 +75,8 @@ const PublicationsPage = () => {
   const [top1, setTop1] = useState(false);
   const [top10, setTop10] = useState(false);
   const [apiParams, setApiParams] = useState({});
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     const root = document.getElementById("root");
@@ -80,13 +84,37 @@ const PublicationsPage = () => {
     return () => root.classList.remove("aurora-root");
   }, []);
 
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      const token = localStorage.getItem("access_token");
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/publications/export/`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error(`Server error: ${res.status}`);
+      const contentType = res.headers.get("content-type") || "";
+      if (!contentType.includes("spreadsheetml")) throw new Error("Invalid file response");
+      const blob = await res.blob();
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "publications.xlsx";
+      a.click();
+      URL.revokeObjectURL(a.href);
+    } catch (err) {
+      console.error("Export failed", err);
+      alert("Export failed: " + err.message);
+    } finally {
+      setExporting(false);
+    }
+  };
+
   useEffect(() => {
     const loadPublications = async () => {
       setLoading(true);
       setError(null);
 
       try {
-        const data = await fetchPublications(apiParams);
+        const data = await fetchPublications({ ...apiParams, page: currentPage });
         const publications = Array.isArray(data)
           ? data
           : Array.isArray(data?.results)
@@ -94,6 +122,7 @@ const PublicationsPage = () => {
           : [];
 
         setPubs(publications);
+        setTotalPages(data?.total_pages || 1);
       } catch (err) {
         console.error(err);
         setError("Failed to load publications");
@@ -104,7 +133,7 @@ const PublicationsPage = () => {
     };
 
     loadPublications();
-  }, [apiParams]);
+  }, [apiParams, currentPage]);
 
   const toggleSelection = (group, item) => {
     setSelections((prev) => {
@@ -370,6 +399,14 @@ const PublicationsPage = () => {
                 {apiParams.in_top_10_percentile && <div className="summary-pill">Top 10%</div>}
                 {apiParams.impact_factor_gte && <div className="summary-pill">IF ≥ {apiParams.impact_factor_gte}</div>}
                 {apiParams.impact_factor_lte && <div className="summary-pill">IF ≤ {apiParams.impact_factor_lte}</div>}
+                <div
+                  className="summary-pill"
+                  onClick={!exporting && !loading ? handleExport : undefined}
+                  title="Export to Excel"
+                  style={{ cursor: exporting ? "not-allowed" : "pointer", opacity: exporting ? 0.5 : 1 }}
+                >
+                  {exporting ? "Exporting…" : "⬇ Export"}
+                </div>
               </div>
             </div>
 
@@ -440,6 +477,7 @@ const PublicationsPage = () => {
                 </div>
               ))
             )}
+            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={(p) => { setCurrentPage(p); window.scrollTo(0, 0); }} />
           </main>
         </div>
       </div>
