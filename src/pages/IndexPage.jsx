@@ -27,6 +27,7 @@ import {
   fetchPublicationMetricsAll,
   fetchPublications,
 } from "../services/api";
+import universityLogo from "../assets/techno-india-university-logo.png";
 
 
 /* ────────────────────────────────────────────────────────────────
@@ -870,7 +871,7 @@ export default function IndexPage() {
       <div className="index-content">
         {/* Dashboard Header */}
         <div style={{ position: "relative", marginBottom: 24 }}>
-          <img src="D:\PAMMI\college\sem8\rims fyp\src\assets\techno-india-university-logo.png" alt="Techno India University" />
+          <img src={universityLogo} alt="Techno India University" />
             <h1 style={{
                 fontFamily: FONT.serif,
                 fontSize: "22px",
