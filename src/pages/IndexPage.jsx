@@ -870,8 +870,14 @@ export default function IndexPage() {
       <div className="index-content">
         {/* Dashboard Header */}
         <div style={{ position: "relative", marginBottom: 24 }}>
-          <h1 style={{ fontSize: "clamp(22px, 2.8vw, 30px)", fontWeight: 700, color: "#fff", margin: 0, lineHeight: 1.2 }}>
-            Dashboards & Analytics
+          <h1 style={{
+                fontFamily: FONT.serif,
+                fontSize: "22px",
+                color: "#fff",
+                margin: "20px 0 10px",
+              }}>
+            Techno India University <br/>
+            Overview Dashboard
           </h1>
           <p style={{ color: "rgba(255,255,255,0.48)", fontSize: 13, margin: "6px 0 0" }}>
             Real-time institutional research performance and impact tracking.
