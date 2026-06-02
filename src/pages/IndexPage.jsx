@@ -63,9 +63,9 @@ const STAT_ICONS = {
       <path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/>
     </svg>
   ),
-  citations: (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M6.5 10c-.223 0-.437.034-.65.065.069-.232.14-.468.254-.68.114-.308.292-.575.469-.844.148-.291.409-.488.601-.737.201-.242.475-.403.692-.604.213-.21.492-.315.714-.463.232-.133.434-.28.65-.35.208-.086.39-.16.539-.222.302-.123.474-.195.474-.195L9.01 4.045S8.81 4.13 8.48 4.273c-.17.064-.395.14-.645.24-.239.103-.518.201-.808.347-.287.14-.629.286-.933.51-.307.217-.637.446-.934.735-.289.281-.602.598-.87.979-.268.375-.547.787-.73 1.253-.187.458-.339.972-.362 1.512l-.007.193V12.5a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2h-.5zm8 0c-.223 0-.437.034-.65.065.069-.232.14-.468.254-.68.114-.308.292-.575.469-.844.148-.291.409-.488.601-.737.201-.242.475-.403.692-.604.213-.21.492-.315.714-.463.232-.133.434-.28.65-.35.208-.086.39-.16.539-.222.302-.123.474-.195.474-.195L17.01 4.045S16.81 4.13 16.48 4.273c-.17.064-.395.14-.645.24-.239.103-.518.201-.808.347-.287.14-.629.286-.933.51-.307.217-.637.446-.934.735-.289.281-.602.598-.87.979-.268.375-.547.787-.73 1.253-.187.458-.339.972-.362 1.512l-.007.193V12.5a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2h-.5z"/>
+  users: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>
     </svg>
   ),
   impact: (
@@ -87,7 +87,7 @@ const STAT_ICONS = {
 
 const STAT_CONFIG = [
   { key: "publications", label: "TOTAL PUBLICATIONS",   iconColor: "#38bdf8", iconBg: "rgba(56,189,248,0.14)" },
-  { key: "citations",    label: "TOTAL CITATIONS",      iconColor: "#34d399", iconBg: "rgba(52,211,153,0.14)" },
+  { key: "users",        label: "REGISTERED USERS",     iconColor: "#34d399", iconBg: "rgba(52,211,153,0.14)" },
   { key: "funding",      label: "RESEARCH FUNDING",      iconColor: "#fb923c", iconBg: "rgba(251,146,60,0.14)"  },
   { key: "impact",       label: "AVG IMPACT FACTOR",    iconColor: "#a78bfa", iconBg: "rgba(167,139,250,0.14)" },
   { key: "awards",       label: "TOTAL AWARDS",         iconColor: "#fbbf24", iconBg: "rgba(251,191,36,0.14)"  },
@@ -96,12 +96,20 @@ const STAT_CONFIG = [
 /* ────────────────────────────────────────────────────────────────
    Top Stats Row
 ──────────────────────────────────────────────────────────────── */
-function TopStatsRow({ stats, totalUsers }) {
+const STAT_LINKS = {
+  publications: "/publications",
+  users:        "/users",
+  funding:      "/research",
+  impact:       "/publications?ordering=-impact_factor&page_size=20",
+  awards:       "/awards",
+};
+
+function TopStatsRow({ stats, totalUsers, navigate }) {
   if (!stats) return null;
 
   const values = {
     publications: (stats.totalPublications ?? 0).toLocaleString(),
-    citations:    (stats.totalCitations    ?? 0).toLocaleString(),
+    users:        (totalUsers ?? 0).toLocaleString(),
     funding:      fmtFunding(stats.totalFunding ?? "0"),
     impact:       stats.impactFactor?.average ?? "—",
     awards:       (stats.totalAwards       ?? 0).toLocaleString(),
@@ -119,12 +127,14 @@ function TopStatsRow({ stats, totalUsers }) {
       {STAT_CONFIG.map(({ key, label, iconColor, iconBg }) => (
         <div
           key={key}
+          onClick={() => navigate && STAT_LINKS[key] && navigate(STAT_LINKS[key])}
           style={{
             ...glassCard,
             display: "flex",
             alignItems: "center",
             gap: 16,
             padding: "18px 20px",
+            cursor: navigate && STAT_LINKS[key] ? "pointer" : "default",
           }}
           className="stat-card-anim"
         >
@@ -154,7 +164,7 @@ function TopStatsRow({ stats, totalUsers }) {
 /* ────────────────────────────────────────────────────────────────
    Indexed Section
 ──────────────────────────────────────────────────────────────── */
-function IndexedRow({ stats }) {
+function IndexedRow({ stats, navigate }) {
   if (!stats) return null;
 
   return (
@@ -178,15 +188,23 @@ function IndexedRow({ stats }) {
             gap: 8,
           }}
         >
-          {stats.indexedIn.map(({ label, value, color }) => (
+          {stats.indexedIn.map(({ label, value, color }) => {
+            const dest = label === "Books" ? "/books-chapters" : label === "Projects" ? "/research" : label === "Scopus" ? "/publications?in_scopus=true" : "/publications";
+            return (
             <div
               key={label}
+              onClick={() => navigate && navigate(dest)}
+              title={`View ${label}`}
               style={{
                 textAlign: "center",
                 padding: "10px 6px",
                 borderRadius: RADIUS.md,
                 background: "rgba(255,255,255,0.2)",
+                cursor: "pointer",
+                transition: "opacity 0.15s",
               }}
+              onMouseEnter={e => e.currentTarget.style.opacity = "0.75"}
+              onMouseLeave={e => e.currentTarget.style.opacity = "1"}
             >
               <div
                 style={{
@@ -201,7 +219,8 @@ function IndexedRow({ stats }) {
                 {label}
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
@@ -224,12 +243,14 @@ function IndexedRow({ stats }) {
         <PercentileCard
           label="Top 1 Percentile"
           value={stats.top1Percentile}
+          onClick={() => navigate && navigate("/publications?in_top_1_percentile=true")}
         />
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         <PercentileCard
           label="Top 10 Percentile"
           value={stats.top10Percentile}
+          onClick={() => navigate && navigate("/publications?in_top_10_percentile=true")}
         />
       </div>
     </div>
@@ -267,17 +288,22 @@ function IndexBlock({ label, items }) {
   );
 }
 
-function PercentileCard({ label, value }) {
+function PercentileCard({ label, value, onClick }) {
   return (
-    <div style={{ ...glassCard, textAlign: "center" }}>
+    <div
+      onClick={onClick}
+      title={`View ${label} publications`}
+      style={{
+        ...glassCard,
+        textAlign: "center",
+        cursor: onClick ? "pointer" : "default",
+        transition: "opacity 0.15s",
+      }}
+      onMouseEnter={e => onClick && (e.currentTarget.style.opacity = "0.75")}
+      onMouseLeave={e => onClick && (e.currentTarget.style.opacity = "1")}
+    >
       <div style={{ fontSize: 18, color: "#eee" }}>{label}</div>
-      <div
-        style={{
-          fontSize: 26,
-          fontWeight: 700,
-          color: "#fff",
-        }}
-      >
+      <div style={{ fontSize: 26, fontWeight: 700, color: "#fff" }}>
         {value}
       </div>
     </div>
@@ -307,7 +333,7 @@ const SDG_NAMES = {
   17: "Partnerships for the Goals",
 };
 
-function SDGBlocks({ data }) {
+function SDGBlocks({ data, navigate }) {
   const total = data.reduce((s, d) => s + d.value, 0);
   return (
     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
@@ -317,13 +343,19 @@ function SDGBlocks({ data }) {
         return (
           <div
             key={d.label}
+            onClick={() => navigate && navigate(`/publications?sdg=${num}`)}
+            title={`View ${d.label} publications`}
             style={{
               display: "flex", alignItems: "center", gap: 8,
               padding: "8px 10px", borderRadius: 10,
               background: `${d.color}18`,
               border: `1px solid ${d.color}33`,
               minWidth: 0,
+              cursor: navigate ? "pointer" : "default",
+              transition: "opacity 0.15s",
             }}
+            onMouseEnter={e => navigate && (e.currentTarget.style.opacity = "0.75")}
+            onMouseLeave={e => navigate && (e.currentTarget.style.opacity = "1")}
           >
             {d.icon ? (
               <img
@@ -362,7 +394,7 @@ function SDGBlocks({ data }) {
   );
 }
 
-function ChartsRow({ trendData, citationTotals, quartileData, sdgData }) {
+function ChartsRow({ trendData, citationTotals, quartileData, sdgData, navigate }) {
   const realSDGData = (sdgData || []).map((d) => ({
     label: d.label,
     value: d.count ?? d.value ?? 0,
@@ -409,7 +441,7 @@ function ChartsRow({ trendData, citationTotals, quartileData, sdgData }) {
             <div style={{ fontWeight: 600, color: "#fff", marginBottom: 10 }}>
               SDG Contribution
             </div>
-            <SDGBlocks data={realSDGData} />
+            <SDGBlocks data={realSDGData} navigate={navigate} />
           </div>
         )}
 
@@ -712,7 +744,7 @@ export default function IndexPage() {
         {
           label: "Scopus",
           value:
-            dashboardData.publications?.total || 0,
+            dashboardData.publications?.in_scopus_count ?? dashboardData.publications?.total ?? 0,
           color: "#E8820C",
         },
         {
@@ -862,8 +894,8 @@ export default function IndexPage() {
           </div>
         </div>
 
-        <TopStatsRow stats={realStats || stats} totalUsers={totalUsers}/>
-        <IndexedRow stats={realStats || stats} />
+        <TopStatsRow stats={realStats || stats} totalUsers={totalUsers} navigate={navigate}/>
+        <IndexedRow stats={realStats || stats} navigate={navigate} />
         <ChartsRow
           trendData={
             realTrendData.length
@@ -879,6 +911,7 @@ export default function IndexPage() {
               : quartile
           }
           sdgData={sdg}
+          navigate={navigate}
         />
 
         {dashboardData?.top_researchers?.length > 0 && (
