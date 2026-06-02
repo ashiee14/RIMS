@@ -838,14 +838,14 @@ export default function IndexPage() {
       <div className="index-content">
         {/* Dashboard Header */}
         <div style={{ position: "relative", marginBottom: 24 }}>
-          <h1 style={{
+          <img src="https://www.nicepng.com/png/detail/525-5250042_tiu-logo-techno-india-university-logo.png" alt="Tiu Logo - Techno India University Logo" />
+            <h1 style={{
                 fontFamily: FONT.serif,
                 fontSize: "22px",
                 color: "#fff",
                 margin: "20px 0 10px",
               }}>
-            Techno India University <br/>
-            Overview Dashboard
+            Overview 
           </h1>
           <p style={{ color: "rgba(255,255,255,0.48)", fontSize: 13, margin: "6px 0 0" }}>
             Real-time institutional research performance and impact tracking.
