@@ -874,7 +874,7 @@ export default function IndexPage() {
           <img
             src={universityLogo}
             alt="Techno India University"
-            style={{ height: 28, width: "auto", display: "block", marginBottom: 10 }}
+            style={{ height: 30, width: 30, display: "block", marginBottom: 10 }}
           />
             <h1 style={{
                 fontFamily: FONT.serif,
