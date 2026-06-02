@@ -2,9 +2,25 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Aurora from "../components/Aurora";
 import { COLORS, FONT, RADIUS } from "../styles/theme";
-import { Logo, GoogleIcon } from "../components/Icons";
+import { GoogleIcon } from "../components/Icons";
 import { useAuth } from "../contexts/AuthContext";
 import OrcidPromptModal from "../components/OrcidPromptModal";
+
+export const Logo = ({ size = 100 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <path
+      d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"
+      fill="#fff"
+      opacity="0.15"
+    />
+    <path
+      d="M12 6v12M6 12h12M8.5 8.5l7 7M15.5 8.5l-7 7"
+      stroke="#fff"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+    />
+  </svg>
+);
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -61,6 +77,7 @@ const HomePage = () => {
           {/* Brand */}
           <div className="brand">
             <Logo size={32} />
+            
             <span className="brand-text">RIMS</span>
           </div>
 

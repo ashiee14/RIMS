@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Aurora from "../components/Aurora";
-import { COLORS } from "../styles/theme";
+import { COLORS, FONT } from "../styles/theme";
 
 const {
   crimson: CRIMSON,
@@ -180,7 +180,10 @@ const AwardDetailsPage = () => {
         ) : (
           <div className="details-card">
 
-            <h1>{award.title}</h1>
+            <h1 style={{color: "#fff",
+                    textShadow: "0 2px 2px CRIMSON",
+                    fontFamily: FONT?.serif,
+                    fontSize: "clamp(28px, 4vw, 40px)",}}>{award.title}</h1>
 
             {award.certificate_image && (
               <img
@@ -354,6 +357,12 @@ const AwardDetailsPage = () => {
           border-radius: 16px;
 
           padding: 24px;
+        }
+
+        .details-card h1 {
+          margin-bottom: 24px;
+          line-height: 1.3;
+          color: ${CRIMSON};
         }
 
         .award-image {

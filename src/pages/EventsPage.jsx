@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Pagination from "../components/Pagination";
 import Aurora from "../components/Aurora";
 import { COLORS, FONT } from "../styles/theme";
 import { useNavigate } from "react-router-dom";
@@ -23,6 +24,8 @@ const inputStyle = {
 const EventsPage = () => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [editingId, setEditingId] = useState(null);
 
   const navigate = useNavigate();
@@ -51,35 +54,12 @@ const EventsPage = () => {
 
       const token = localStorage.getItem("access_token");
 
-      let allEvents = [];
-      let nextUrl = "https://rims-api.prerna.sh/api/events/";
-
-      while (nextUrl) {
-        const response = await fetch(nextUrl, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        const data = await response.json();
-
-        console.log("EVENT PAGE DATA:", data);
-
-        allEvents = [
-          ...allEvents,
-          ...(data.results || []),
-        ];
-
-        nextUrl = data.next
-          ? data.next.replace("http://", "https://")
-          : null;
-      }
-
-      const sortedEvents = allEvents.sort(
-        (a, b) => b.id - a.id
-      );
-
-      setEvents(sortedEvents);
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/events/?page=${currentPage}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await response.json();
+      setEvents(data.results || []);
+      setTotalPages(data.total_pages || 1);
 
     } catch (error) {
       console.error("Error fetching events:", error);
@@ -90,7 +70,7 @@ const EventsPage = () => {
   };
 
   loadEvents();
-}, []);
+}, [currentPage]);
 
 
 
@@ -216,10 +196,10 @@ const handleUpdateEvent = async () => {
       <div className="events-content">
         <h1
           style={{
-            color: CRIMSON,
+            color: "#fff",
+            textShadow: "0 2px 2px CRIMSON",
             fontFamily: FONT?.serif,
             fontSize: "clamp(28px, 4vw, 40px)",
-            marginBottom: "6px",
           }}
         >
           Events
@@ -428,6 +408,7 @@ const handleUpdateEvent = async () => {
 </div>
   ))
 )}
+        <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={(p) => { setCurrentPage(p); window.scrollTo(0, 0); }} />
         </div>
       </div>
 

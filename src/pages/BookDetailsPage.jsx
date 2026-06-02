@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Aurora from "../components/Aurora";
-import { COLORS } from "../styles/theme";
+import { COLORS, FONT } from "../styles/theme";
 import { fetchBookById } from "../services/api";
 import { useAuth } from "../contexts/AuthContext";
 
@@ -81,7 +81,10 @@ const BookDetailsPage = () => {
           ← Back
         </button>
 
-        <h1 style={{ color: CRIMSON }}>
+        <h1 style={{ color: "#fff",
+                    textShadow: "0 2px 2px CRIMSON",
+                    fontFamily: FONT?.serif,
+                    fontSize: "clamp(28px, 4vw, 40px)", }}>
           {book.title}
         </h1>
 

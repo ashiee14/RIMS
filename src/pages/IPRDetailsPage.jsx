@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import Aurora from "../components/Aurora";
-import { COLORS } from "../styles/theme";
+import { COLORS, FONT } from "../styles/theme";
 import { fetchIPRById } from "../services/api";
 
 const {
@@ -51,7 +51,7 @@ const IPRDetailsPage = () => {
         
         {loading ? (
           <div className="message">Loading IPR...</div>
-        ) : error ? (
+        ) : error ? (   
           <div className="message">{error}</div>
         ) : !ipr ? (
           <div className="message">IPR not found.</div>
@@ -60,7 +60,10 @@ const IPRDetailsPage = () => {
             
           <div className="details-card">
                         
-            <h1>{ipr.title}</h1>
+            <h1 style={{color: "#fff",
+                    textShadow: "0 2px 2px CRIMSON",
+                    fontFamily: FONT?.serif,
+                    fontSize: "clamp(28px, 4vw, 40px)",}}>{ipr.title}</h1>
 
             <div className="detail-row">
               <strong>IPR Type:</strong>
@@ -134,6 +137,7 @@ const IPRDetailsPage = () => {
 
         .details-card h1 {
           margin-bottom: 24px;
+          line-height: 1.3;
           color: ${CRIMSON};
         }
 

@@ -219,7 +219,7 @@ const UserProfilePage = () => {
       if (response.status === "linked") {
         navigate("/dashboard");
       } else if (response.status === "not_found") {
-        setOrcidError("Your ORCID is not registered in RIMS. You remain a viewer.");
+        setOrcidError("Your ORCID is not registered. You remain a viewer.");
       }
 
       setOrcidInput("");
@@ -350,11 +350,11 @@ const UserProfilePage = () => {
             <h1 style={{ fontSize: 24, fontWeight: 700, color: "#fff", margin: "0 0 4px" }}>
               {profile?.full_name}
             </h1>
-            <div style={{ fontSize: 14, color: "#a78bfa", fontWeight: 500, marginBottom: 4 }}>
+            <div style={{ fontSize: 14, color: "#ffffff", fontWeight: 500, marginBottom: 4 }}>
               {profile?.designation || (profile?.role ? profile.role.charAt(0).toUpperCase() + profile.role.slice(1) : "Faculty")}
             </div>
-            <div style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", marginBottom: 14 }}>
-              {profile?.department?.name || "Unknown Department"} · {profile?.institution?.name || "Unknown Institution"}
+            <div style={{ fontSize: 13, color: "rgb(255, 255, 255)", marginBottom: 14 }}>
+              {profile?.institution?.name || "Techno India University"} <br></br>
               {profile?.email && <span style={{ marginLeft: 12 }}>{profile.email}</span>}
             </div>
 
@@ -410,14 +410,6 @@ const UserProfilePage = () => {
             {orcidError && <div style={{ fontSize: 12, color: "#f87171", marginTop: 6 }}>{orcidError}</div>}
           </div>
 
-          {/* Edit button */}
-          <button onClick={() => console.log("Edit Profile")} style={{
-            flexShrink: 0, padding: "8px 18px", borderRadius: 10, fontSize: 13,
-            background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.18)",
-            color: "#fff", cursor: "pointer",
-          }}>
-            Edit Profile ↗
-          </button>
         </div>
 
         {(!isViewer || !isOwnProfile) && <>
@@ -526,6 +518,40 @@ const UserProfilePage = () => {
                     {pubs.length} publications
                   </span>
                   <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    {isOwnProfile && !isViewer && (
+                      <div
+                        title="Export to Excel"
+                        onClick={async () => {
+                          try {
+                            const token = localStorage.getItem("access_token");
+                            const res = await fetch(`${import.meta.env.VITE_API_URL}/publications/mine/export/`, {
+                              headers: { Authorization: `Bearer ${token}` },
+                            });
+                            if (!res.ok) throw new Error(`Error: ${res.status}`);
+                            const blob = await res.blob();
+                            const a = document.createElement("a");
+                            a.href = URL.createObjectURL(blob);
+                            a.download = "my_publications.xlsx";
+                            a.click();
+                            URL.revokeObjectURL(a.href);
+                          } catch (err) {
+                            alert("Export failed: " + err.message);
+                          }
+                        }}
+                        style={{
+                          background: "rgba(255,255,255,0.08)",
+                          border: `1px solid ${BORDER}`,
+                          borderRadius: 999,
+                          padding: "8px 12px",
+                          fontSize: 12,
+                          color: "#fff",
+                          cursor: "pointer",
+                          userSelect: "none",
+                        }}
+                      >
+                        ⬇ Export
+                      </div>
+                    )}
                     <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} style={selectStyle}>
                       <option value="latest">Latest</option>
                       <option value="oldest">Oldest</option>

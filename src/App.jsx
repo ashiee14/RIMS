@@ -50,8 +50,6 @@
           
           <Route path="/sdg-tagger" element={<SDGTaggerPage />} key={location.key} />
           <Route path="/journal-checker" element={<JournalCheckerPage />} key={location.key} />
-          <Route path="/research-analytics" element={<ResearchAnalyticsPage />} key={location.key} />
-          <Route path="/more-features" element={<MoreFeaturesPage />} key={location.key} />
 
           <Route path="/publications" element={<PublicationsPage />} key={location.key} />
           <Route path="/publications/:id" element={<PublicationDetailsPage />} key={location.key} />

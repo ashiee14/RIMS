@@ -311,7 +311,7 @@ function ChartsRow({
             marginBottom: 12,
           }}
         >
-          <span style={{ color: "#fff", fontWeight: 600 }}>
+          <span style={{ fontSize: 18, color: "#eaeaea", marginTop: 12, justifyContent: "center", display: "flex" }}>
             Publication Trends
           </span>
         </div>

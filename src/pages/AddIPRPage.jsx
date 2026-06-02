@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Aurora from "../components/Aurora";
-import { COLORS } from "../styles/theme";
+import { COLORS,FONT } from "../styles/theme";
 import { addIPR, extractIPR } from "../services/api";
 
 
@@ -111,7 +111,10 @@ const AddIPRPage = () => {
       />
 
       <div className="aurora-content">
-        <h1 style={{ color: CRIMSON }}>
+        <h1 style={{ color: "#fff",
+            textShadow: "0 2px 2px CRIMSON",
+            fontFamily: FONT?.serif,
+            fontSize: "clamp(28px, 4vw, 40px)", }}>
                   Add IPR
                 </h1>
 

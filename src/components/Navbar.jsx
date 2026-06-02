@@ -193,8 +193,6 @@ export default function Navbar() {
   const toolItems = [
   { label: "SDG Tagger", path: "/sdg-tagger" },
   { label: "Journal Checker", path: "/journal-checker" },
-  { label: "Research Analytics", path: "/research-analytics" },
-  { label: "More Features", path: "/more-features" },
 ];
 
   const viewItems = [
@@ -207,7 +205,6 @@ export default function Navbar() {
 ];
 
   const addItems = [
-    { label: "Add Publication", path: "/add-publication" },
     { label: "Add IPR", path: "/add-ipr" },
     { label: "Add Award", path: "/add-awards" },
     { label: "Add Event", path: "/add-event" },
@@ -267,7 +264,7 @@ export default function Navbar() {
         icon={<UserIcon />}
         items={[
             { label: "My Profile", path: "/user-profile" },
-            ...(!isViewer ? [{ label: "Admin Panel", path: "/admin" }] : []),
+            
             { label: "Sign Out", onClick: () => { logout(); navigate('/'); } },
         ]}
         />

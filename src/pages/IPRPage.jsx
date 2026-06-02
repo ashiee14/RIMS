@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
+import Pagination from "../components/Pagination";
 import Aurora from "../components/Aurora";
-import { COLORS } from "../styles/theme";
+import { COLORS, FONT } from "../styles/theme";
 import {
   fetchIPRs,
   updateIPR,
@@ -19,6 +20,8 @@ const {
 const IPRPage = () => {
   const [iprs, setIprs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const navigate = useNavigate();
   const { role } = useAuth();
   const isViewer = role === "viewer";
@@ -44,33 +47,12 @@ const [editForm, setEditForm] = useState({
     try {
       setLoading(true);
 
-      let allIPRs = [];
-      let nextUrl = `${import.meta.env.VITE_API_URL}/ipr/`;
-
-      while (nextUrl) {
-  const response = await fetch(nextUrl, {
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-    },
-  });
-
-  const data = await response.json();
-
-  console.log("PAGE DATA:", data);
-
-  allIPRs = [...allIPRs, ...data.results];
-
-  // Force HTTPS
-  nextUrl = data.next
-    ? data.next.replace("http://", "https://")
-    : null;
-}
-
-      const sortedIPRs = allIPRs.sort(
-        (a, b) => b.id - a.id
-      );
-
-      setIprs(sortedIPRs);
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/ipr/?page=${currentPage}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("access_token")}` },
+      });
+      const data = await response.json();
+      setIprs(data.results || []);
+      setTotalPages(data.total_pages || 1);
 
     } catch (error) {
       console.error("Error fetching IPRs:", error);
@@ -81,7 +63,7 @@ const [editForm, setEditForm] = useState({
   };
 
   loadIPRs();
-}, []);
+}, [currentPage]);
 
 
 const handleEditClick = (ipr) => {
@@ -151,7 +133,10 @@ const handleDelete = async (id) => {
     <div className="aurora-page">
       <Aurora colorStops={["#8061fc", "#2500b7", "#000000", "#2200a8"]} amplitude={1} blend={0.5} />
       <div className="aurora-content">
-        <h1 style={{ color: CRIMSON }}>Intellectual Property Rights (IPR)</h1>
+        <h1 style={{ color: "#fff",
+                    textShadow: "0 2px 2px CRIMSON",
+                    fontFamily: FONT?.serif,
+                    fontSize: "clamp(28px, 4vw, 40px)", }}>Intellectual Property Rights (IPR)</h1>
         <p style={{ color: TEXT_MUTED }}>Patents, copyrights, and trademarks.</p>
 
         {!isViewer && (
@@ -307,6 +292,7 @@ const handleDelete = async (id) => {
            ))}
   </div>
 )}
+      <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={(p) => { setCurrentPage(p); window.scrollTo(0, 0); }} />
       </div>
 
       <style>{`
