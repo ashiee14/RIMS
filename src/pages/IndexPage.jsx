@@ -12,7 +12,6 @@ import {
 
 import {
   DonutChart,
-  DonutLegend,
   TrendChart,
 } from "../components/Charts";
 
@@ -31,6 +30,18 @@ import {
 
 
 /* ────────────────────────────────────────────────────────────────
+   Helpers
+──────────────────────────────────────────────────────────────── */
+function fmtFunding(raw) {
+  const n = parseFloat(raw) || 0;
+  if (n === 0) return "—";
+  if (n >= 10_000_000) return `₹${(n / 10_000_000).toFixed(2)} Cr`;
+  if (n >= 100_000)    return `₹${(n / 100_000).toFixed(1)} L`;
+  if (n >= 1_000)      return `₹${(n / 1_000).toFixed(0)}K`;
+  return `₹${n}`;
+}
+
+/* ────────────────────────────────────────────────────────────────
    Glassmorphism Style
 ──────────────────────────────────────────────────────────────── */
 const glassCard = {
@@ -44,10 +55,57 @@ const glassCard = {
 };
 
 /* ────────────────────────────────────────────────────────────────
+   Icon for stat cards
+──────────────────────────────────────────────────────────────── */
+const STAT_ICONS = {
+  publications: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/>
+    </svg>
+  ),
+  citations: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M6.5 10c-.223 0-.437.034-.65.065.069-.232.14-.468.254-.68.114-.308.292-.575.469-.844.148-.291.409-.488.601-.737.201-.242.475-.403.692-.604.213-.21.492-.315.714-.463.232-.133.434-.28.65-.35.208-.086.39-.16.539-.222.302-.123.474-.195.474-.195L9.01 4.045S8.81 4.13 8.48 4.273c-.17.064-.395.14-.645.24-.239.103-.518.201-.808.347-.287.14-.629.286-.933.51-.307.217-.637.446-.934.735-.289.281-.602.598-.87.979-.268.375-.547.787-.73 1.253-.187.458-.339.972-.362 1.512l-.007.193V12.5a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2h-.5zm8 0c-.223 0-.437.034-.65.065.069-.232.14-.468.254-.68.114-.308.292-.575.469-.844.148-.291.409-.488.601-.737.201-.242.475-.403.692-.604.213-.21.492-.315.714-.463.232-.133.434-.28.65-.35.208-.086.39-.16.539-.222.302-.123.474-.195.474-.195L17.01 4.045S16.81 4.13 16.48 4.273c-.17.064-.395.14-.645.24-.239.103-.518.201-.808.347-.287.14-.629.286-.933.51-.307.217-.637.446-.934.735-.289.281-.602.598-.87.979-.268.375-.547.787-.73 1.253-.187.458-.339.972-.362 1.512l-.007.193V12.5a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2h-.5z"/>
+    </svg>
+  ),
+  impact: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>
+    </svg>
+  ),
+  awards: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/>
+    </svg>
+  ),
+  funding: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/>
+    </svg>
+  ),
+};
+
+const STAT_CONFIG = [
+  { key: "publications", label: "TOTAL PUBLICATIONS",   iconColor: "#38bdf8", iconBg: "rgba(56,189,248,0.14)" },
+  { key: "citations",    label: "TOTAL CITATIONS",      iconColor: "#34d399", iconBg: "rgba(52,211,153,0.14)" },
+  { key: "funding",      label: "RESEARCH FUNDING",      iconColor: "#fb923c", iconBg: "rgba(251,146,60,0.14)"  },
+  { key: "impact",       label: "AVG IMPACT FACTOR",    iconColor: "#a78bfa", iconBg: "rgba(167,139,250,0.14)" },
+  { key: "awards",       label: "TOTAL AWARDS",         iconColor: "#fbbf24", iconBg: "rgba(251,191,36,0.14)"  },
+];
+
+/* ────────────────────────────────────────────────────────────────
    Top Stats Row
 ──────────────────────────────────────────────────────────────── */
 function TopStatsRow({ stats, totalUsers }) {
   if (!stats) return null;
+
+  const values = {
+    publications: (stats.totalPublications ?? 0).toLocaleString(),
+    citations:    (stats.totalCitations    ?? 0).toLocaleString(),
+    funding:      fmtFunding(stats.totalFunding ?? "0"),
+    impact:       stats.impactFactor?.average ?? "—",
+    awards:       (stats.totalAwards       ?? 0).toLocaleString(),
+  };
 
   return (
     <div
@@ -58,58 +116,37 @@ function TopStatsRow({ stats, totalUsers }) {
         marginBottom: 14,
       }}
     >
-      <div style={glassCard}>
-        <div style={{ fontSize: 18, color: "#eaeaea", marginTop: 12 }}>
-          Total Indexed Publications
-        </div>
-        <StatCard
-          
-          label="Total Publications/Proceedings"
-          value={stats.totalPublications.toLocaleString()}
-          sub={`↑ ${stats.retracted} Retracted`}
-        />
-      </div>
-
-      <div style={glassCard}>
-        <div style={{ fontSize: 18, color: "#eaeaea", marginTop: 12 }}>
-          Total Registered Users
-        </div>
-
+      {STAT_CONFIG.map(({ key, label, iconColor, iconBg }) => (
         <div
+          key={key}
           style={{
-            fontSize: 28,
-            fontWeight: 700,
-            color: "#fff",
-            marginTop: 18,
-            marginBottom: 12,
+            ...glassCard,
+            display: "flex",
+            alignItems: "center",
+            gap: 16,
+            padding: "18px 20px",
           }}
+          className="stat-card-anim"
         >
-          {totalUsers ?? 0}
+          <div style={{
+            width: 46, height: 46, borderRadius: 12, flexShrink: 0,
+            background: iconBg,
+            border: `1px solid ${iconColor}33`,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            color: iconColor,
+          }}>
+            {STAT_ICONS[key]}
+          </div>
+          <div>
+            <div style={{ fontSize: 26, fontWeight: 700, color: "#fff", lineHeight: 1.1 }}>
+              {values[key]}
+            </div>
+            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.42)", marginTop: 4, letterSpacing: "0.07em", fontWeight: 500 }}>
+              {label}
+            </div>
+          </div>
         </div>
-      </div>
-
-
-      {/* Impact Factor */}
-      <div style={glassCard}>
-        <div style={{ fontSize: 18, color: "#eaeaea" }}>
-          Impact Factor
-        </div>
-        <div style={{ fontSize: 12, color: "#ddd" }}>Average</div>
-        <div
-          style={{
-            fontSize: 24,
-            fontWeight: 700,
-            color: "#fff",
-          }}
-        >
-          {stats.impactFactor.average}
-        </div>
-        <div style={{ fontSize: 11, color: "#ddd" }}>
-          Cumulative:{" "}
-          {stats.impactFactor.cumulative.toLocaleString()}
-        </div>
-      </div>
-
+      ))}
     </div>
   );
 }
@@ -250,83 +287,132 @@ function PercentileCard({ label, value }) {
 /* ────────────────────────────────────────────────────────────────
    Charts Section
 ──────────────────────────────────────────────────────────────── */
-function ChartsRow({
-  trendData,
-  citationTotals,
-  quartileData,
-  sdgData,
-}) {
+const SDG_NAMES = {
+  1:  "No Poverty",
+  2:  "Zero Hunger",
+  3:  "Good Health & Well-Being",
+  4:  "Quality Education",
+  5:  "Gender Equality",
+  6:  "Clean Water & Sanitation",
+  7:  "Affordable & Clean Energy",
+  8:  "Decent Work & Economic Growth",
+  9:  "Industry, Innovation & Infrastructure",
+  10: "Reduced Inequalities",
+  11: "Sustainable Cities & Communities",
+  12: "Responsible Consumption",
+  13: "Climate Action",
+  14: "Life Below Water",
+  15: "Life on Land",
+  16: "Peace, Justice & Strong Institutions",
+  17: "Partnerships for the Goals",
+};
+
+function SDGBlocks({ data }) {
+  const total = data.reduce((s, d) => s + d.value, 0);
   return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "1fr minmax(200px, 0.45fr)",
-        gap: 12,
-        marginBottom: 14,
-      }}
-    >
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+      {data.map((d) => {
+        const num  = parseInt(d.label.replace("SDG ", ""), 10);
+        const name = SDG_NAMES[num] || d.label;
+        return (
+          <div
+            key={d.label}
+            style={{
+              display: "flex", alignItems: "center", gap: 8,
+              padding: "8px 10px", borderRadius: 10,
+              background: `${d.color}18`,
+              border: `1px solid ${d.color}33`,
+              minWidth: 0,
+            }}
+          >
+            {d.icon ? (
+              <img
+                src={d.icon}
+                alt={d.label}
+                style={{ width: 34, height: 34, borderRadius: 6, objectFit: "cover", flexShrink: 0 }}
+              />
+            ) : (
+              <div style={{
+                width: 34, height: 34, borderRadius: 6, flexShrink: 0,
+                background: d.color,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 13, fontWeight: 800, color: "#fff",
+              }}>
+                {num}
+              </div>
+            )}
+            <div style={{ minWidth: 0, overflow: "hidden" }}>
+              <div style={{ fontSize: 9, color: d.color, fontWeight: 700, letterSpacing: "0.05em" }}>
+                {d.label}
+              </div>
+              <div style={{
+                fontSize: 10, color: "rgba(255,255,255,0.7)", fontWeight: 500,
+                lineHeight: 1.3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+              }}>
+                {name}
+              </div>
+              <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", lineHeight: 1.1, marginTop: 2 }}>
+                {d.value.toLocaleString()}
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function ChartsRow({ trendData, citationTotals, quartileData, sdgData }) {
+  const realSDGData = (sdgData || []).map((d) => ({
+    label: d.label,
+    value: d.count ?? d.value ?? 0,
+    color: d.color,
+    icon: d.icon || null,
+  }));
+
+  return (
+    <div style={{
+      display: "grid",
+      gridTemplateColumns: "1fr minmax(240px, 0.48fr)",
+      gap: 12,
+      marginBottom: 14,
+    }}>
       {/* Trend Chart */}
       <div style={glassCard}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            marginBottom: 12,
-          }}
-        >
-          <span style={{ fontSize: 18, color: "#eaeaea", marginTop: 12, justifyContent: "center", display: "flex" }}>
-            Publication Trends
-          </span>
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
+          <span style={{ color: "#fff", fontWeight: 600 }}>Publication Trends</span>
         </div>
         <TrendChart data={trendData} />
       </div>
 
-      {/* Donut & SDG */}
+      {/* Right column: Quartile + SDG */}
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+
+        {/* Quartile Distribution */}
         <div style={glassCard}>
-          <div
-            style={{
-              textAlign: "center",
-              fontWeight: 600,
-              color: "#fff",
-              marginBottom: 10,
-            }}
-          >
-            Quartiles
+          <div style={{ textAlign: "center", fontWeight: 600, color: "#fff", marginBottom: 10 }}>
+            Quartile Distribution
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <DonutChart data={quartileData} size={100} />
-            <DonutLegend data={quartileData} />
-          </div>
+          <DonutChart
+            data={quartileData}
+            centerValue={quartileData.reduce((s, d) => s + d.value, 0)}
+            centerLabel="Publications"
+            height={180}
+            showLegend
+            defaultHidden={["None"]}
+          />
         </div>
 
-        <div style={glassCard}>
-          <div style={{ color: "#fff", marginBottom: 8 }}>
-            Sustainable Development Goals
+        {/* SDG Contribution */}
+        {realSDGData.length > 0 && (
+          <div style={glassCard}>
+            <div style={{ fontWeight: 600, color: "#fff", marginBottom: 10 }}>
+              SDG Contribution
+            </div>
+            <SDGBlocks data={realSDGData} />
           </div>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: 6,
-            }}
-          >
-            {sdgData.map((d) => (
-              <div
-                key={d.label}
-                style={{
-                  background: d.color,
-                  borderRadius: RADIUS.md,
-                  padding: "8px",
-                  color: "#fff",
-                }}
-              >
-                <strong>{d.count}</strong>
-                <div style={{ fontSize: 10 }}>{d.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
+        )}
+
       </div>
     </div>
   );
@@ -589,6 +675,15 @@ export default function IndexPage() {
       totalPublications:
         dashboardData.publications?.total || 0,
 
+      totalCitations:
+        dashboardData.publications?.total_citations || 0,
+
+      totalAwards:
+        dashboardData.awards?.total || 0,
+
+      totalFunding:
+        dashboardData.projects?.total_funding || "0",
+
       indexedPublications:
         dashboardData.publications?.total || 0,
 
@@ -702,8 +797,19 @@ export default function IndexPage() {
     ]
   : [];
 
-  const realTrendData =
-  dashboardData?.publications?.by_year || [];
+  // Merge citations_by_year into by_year so TrendChart gets {year, count, citations}
+  const realTrendData = (() => {
+    const byYear = dashboardData?.publications?.by_year || [];
+    const citMap = {};
+    (dashboardData?.publications?.citations_by_year || []).forEach((d) => {
+      citMap[d.year] = d.count;
+    });
+    return byYear.map((d) => ({
+      year: d.year,
+      count: d.count,
+      citations: citMap[d.year] ?? null,
+    }));
+  })();
 
   const realCitationTotals = dashboardData
   ? {
@@ -730,17 +836,25 @@ export default function IndexPage() {
       />
 
       <div className="index-content">
-        <h1
-          style={{
-            fontFamily: FONT.serif,
-            fontSize: "clamp(24px, 3vw, 34px)",
-            fontWeight: 400,
-            marginBottom: 22,
-            color: "#ffffff",
-          }}
-        >
-          Overview
-        </h1>
+        {/* Dashboard Header */}
+        <div style={{ position: "relative", marginBottom: 24 }}>
+          <h1 style={{ fontSize: "clamp(22px, 2.8vw, 30px)", fontWeight: 700, color: "#fff", margin: 0, lineHeight: 1.2 }}>
+            Dashboards & Analytics
+          </h1>
+          <p style={{ color: "rgba(255,255,255,0.48)", fontSize: 13, margin: "6px 0 0" }}>
+            Real-time institutional research performance and impact tracking.
+          </p>
+          <div style={{
+            position: "absolute", top: 4, right: 0,
+            display: "flex", alignItems: "center", gap: 7,
+            background: "rgba(20,220,160,0.08)",
+            border: "1px solid rgba(20,220,160,0.28)",
+            borderRadius: 999, padding: "5px 14px",
+          }}>
+            <div className="live-dot" />
+            <span style={{ fontSize: 11, color: "#14dca0", fontWeight: 600, letterSpacing: "0.07em" }}>LIVE METRICS</span>
+          </div>
+        </div>
 
         <TopStatsRow stats={realStats || stats} totalUsers={totalUsers}/>
         <IndexedRow stats={realStats || stats} />
@@ -810,6 +924,44 @@ export default function IndexPage() {
           padding: clamp(16px, 3vw, 28px);
           max-width: 1400px;
           margin: 0 auto;
+        }
+
+        /* Donut animations */
+        @keyframes donutSpinIn {
+          from { transform: scale(0.55) rotate(-80deg); opacity: 0; }
+          to   { transform: scale(1)   rotate(0deg);   opacity: 1; }
+        }
+        @keyframes fadeUp {
+          from { transform: translateY(8px); opacity: 0; }
+          to   { transform: translateY(0);   opacity: 1; }
+        }
+        .donut-anim { animation: donutSpinIn 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+        .donut-center-anim { animation: fadeUp 0.4s ease 0.55s both; }
+        .legend-item-anim { animation: fadeUp 0.35s ease both; opacity: 0; }
+
+        /* Stat card entrance */
+        @keyframes cardFadeIn {
+          from { transform: translateY(10px); opacity: 0; }
+          to   { transform: translateY(0);    opacity: 1; }
+        }
+        .stat-card-anim {
+          animation: cardFadeIn 0.45s ease both;
+          opacity: 0;
+        }
+        .stat-card-anim:nth-child(1) { animation-delay: 0.05s; }
+        .stat-card-anim:nth-child(2) { animation-delay: 0.11s; }
+        .stat-card-anim:nth-child(3) { animation-delay: 0.17s; }
+        .stat-card-anim:nth-child(4) { animation-delay: 0.23s; }
+        .stat-card-anim:nth-child(5) { animation-delay: 0.29s; }
+
+        /* LIVE dot pulse */
+        .live-dot {
+          width: 7px; height: 7px; border-radius: 50%; background: #14dca0;
+          animation: livePulse 2s ease-in-out infinite;
+        }
+        @keyframes livePulse {
+          0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(20,220,160,0.5); }
+          50%       { opacity: 0.8; box-shadow: 0 0 0 5px rgba(20,220,160,0); }
         }
       `}</style>
     </div>
