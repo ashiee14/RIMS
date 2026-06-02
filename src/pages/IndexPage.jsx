@@ -871,17 +871,14 @@ export default function IndexPage() {
       <div className="index-content">
         {/* Dashboard Header */}
         <div style={{ position: "relative", marginBottom: 24 }}>
-          <img
-            src={universityLogo}
-            alt="Techno India University"
-            style={{ height: 30, width: 30, display: "block", marginBottom: 10 }}
-          />
+
             <h1 style={{
                 fontFamily: FONT.serif,
                 fontSize: "22px",
                 color: "#fff",
                 margin: "20px 0 10px",
               }}>
+                TECHNO INDIA UNIVERSITY <br/>
             Overview 
           </h1>
           <p style={{ color: "rgba(255,255,255,0.48)", fontSize: 13, margin: "6px 0 0" }}>
