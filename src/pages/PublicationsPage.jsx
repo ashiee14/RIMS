@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import Aurora from "../components/Aurora";
 import { COLORS } from "../styles/theme";
 import { ChevronDown } from "../components/Navbar";
-import { fetchPublications } from "../services/api";
+import { fetchPublications, searchPublications } from "../services/api";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Pagination from "../components/Pagination";
 import { FONT } from "../styles/theme";
@@ -141,16 +141,23 @@ const PublicationsPage = () => {
       setError(null);
 
       try {
-        const data = await fetchPublications({ ...apiParams, page: currentPage });
-        const publications = Array.isArray(data)
-          ? data
-          : Array.isArray(data?.results)
-          ? data.results
-          : [];
-
-        setPubs(publications);
-        setTotalPages(data?.total_pages || 1);
-        setTotalCount(data?.count || 0);
+        if (appliedNameQuery) {
+          const data = await searchPublications(appliedNameQuery, "publication");
+          const publications = data.publications || [];
+          setPubs(publications);
+          setTotalPages(1);
+          setTotalCount(publications.length);
+        } else {
+          const data = await fetchPublications({ ...apiParams, page: currentPage });
+          const publications = Array.isArray(data)
+            ? data
+            : Array.isArray(data?.results)
+            ? data.results
+            : [];
+          setPubs(publications);
+          setTotalPages(data?.total_pages || 1);
+          setTotalCount(data?.count || 0);
+        }
       } catch (err) {
         console.error(err);
         setError("Failed to load publications");
@@ -161,7 +168,7 @@ const PublicationsPage = () => {
     };
 
     loadPublications();
-  }, [apiParams, currentPage]);
+  }, [apiParams, currentPage, appliedNameQuery]);
 
   const toggleSelection = (group, item) => {
     setSelections((prev) => {
@@ -216,9 +223,6 @@ const PublicationsPage = () => {
     // Impact Factor range
     if (ifMin !== "") params.impact_factor_gte = parseFloat(ifMin);
     if (ifMax !== "") params.impact_factor_lte = parseFloat(ifMax);
-
-    // Name/text search
-    if (nameQuery.trim()) params.search = nameQuery.trim();
 
     setApiParams(params);
     setCurrentPage(1);
@@ -338,14 +342,14 @@ const PublicationsPage = () => {
 
             <div className="filter-section">
               <div className="filter-title">
-                <span>Search by name</span>
+                <span>Search</span>
               </div>
               <input
                 className="name-search-input"
                 type="text"
                 value={nameQuery}
                 onChange={(e) => setNameQuery(e.target.value)}
-                placeholder="Search authors or title"
+                placeholder="Search publications…"
               />
             </div>
 
@@ -571,7 +575,7 @@ const PublicationsPage = () => {
                 </div>
               ))
             )}
-            {orderingFromUrl !== "-impact_factor" && (
+            {orderingFromUrl !== "-impact_factor" && !appliedNameQuery && (
               <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={(p) => { setCurrentPage(p); window.scrollTo(0, 0); }} />
             )}
           </main>
