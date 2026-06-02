@@ -253,6 +253,30 @@ export default function Navbar() {
 
       <div style={{ flex: 1 }} />
 
+      {/* Search */}
+      <Link
+        to="/search"
+        title="Search"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          width: 36,
+          height: 36,
+          borderRadius: 8,
+          background: "rgba(255,255,255,0.1)",
+          border: "1px solid rgba(255,255,255,0.2)",
+          color: "#fff",
+          textDecoration: "none",
+          flexShrink: 0,
+        }}
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+          <circle cx="11" cy="11" r="8" />
+          <path d="m21 21-4.35-4.35" />
+        </svg>
+      </Link>
+
       {/* Dropdowns */}
       <Dropdown label="Research Tools" color="teal" items={toolItems} />
       <Dropdown label="View Research" items={viewItems} />
