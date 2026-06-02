@@ -3,9 +3,19 @@ import Aurora from "../components/Aurora";
 import { COLORS } from "../styles/theme";
 import { ChevronDown } from "../components/Navbar";
 import { fetchPublications } from "../services/api";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import Pagination from "../components/Pagination";
 import { FONT } from "../styles/theme";
+
+const SDG_NAMES = {
+  1:"No Poverty", 2:"Zero Hunger", 3:"Good Health and Well-being",
+  4:"Quality Education", 5:"Gender Equality", 6:"Clean Water and Sanitation",
+  7:"Affordable and Clean Energy", 8:"Decent Work and Economic Growth",
+  9:"Industry, Innovation and Infrastructure", 10:"Reduced Inequalities",
+  11:"Sustainable Cities and Communities", 12:"Responsible Consumption and Production",
+  13:"Climate Action", 14:"Life Below Water", 15:"Life on Land",
+  16:"Peace, Justice and Strong Institutions", 17:"Partnerships for the Goals",
+};
 
 const {
   crimson: CRIMSON,
@@ -59,6 +69,22 @@ const QUARTILE_COLORS = {
 
 const PublicationsPage = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  const orderingFromUrl = searchParams.get("ordering");
+  const pageSizeFromUrl = searchParams.get("page_size");
+  const sdgFromUrl = searchParams.get("sdg");
+  const top1FromUrl = searchParams.get("in_top_1_percentile");
+  const top10FromUrl = searchParams.get("in_top_10_percentile");
+  const scopusFromUrl = searchParams.get("in_scopus");
+
+  const initialParams = {};
+  if (orderingFromUrl) initialParams.ordering = orderingFromUrl;
+  if (pageSizeFromUrl) initialParams.page_size = pageSizeFromUrl;
+  if (sdgFromUrl) initialParams.sdg = sdgFromUrl;
+  if (top1FromUrl) initialParams.in_top_1_percentile = true;
+  if (top10FromUrl) initialParams.in_top_10_percentile = true;
+  if (scopusFromUrl === "true") initialParams.in_scopus = true;
 
   const [pubs, setPubs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -74,9 +100,10 @@ const PublicationsPage = () => {
   const [ifMax, setIfMax] = useState("");
   const [top1, setTop1] = useState(false);
   const [top10, setTop10] = useState(false);
-  const [apiParams, setApiParams] = useState({});
+  const [apiParams, setApiParams] = useState(initialParams);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
 
   useEffect(() => {
     const root = document.getElementById("root");
@@ -123,6 +150,7 @@ const PublicationsPage = () => {
 
         setPubs(publications);
         setTotalPages(data?.total_pages || 1);
+        setTotalCount(data?.count || 0);
       } catch (err) {
         console.error(err);
         setError("Failed to load publications");
@@ -147,11 +175,53 @@ const PublicationsPage = () => {
 
   const applyFilters = () => {
     const params = {};
+    const currentYear = new Date().getFullYear();
+
+    // Year filter
+    const yearSel = selections.Year || [];
+    if (!yearSel.includes("All (7637)") && yearSel.length > 0) {
+      if (yearSel.includes("Current Year (1732)")) { params.year_gte = currentYear; params.year_lte = currentYear; }
+      else if (yearSel.includes("Last Year (1840)")) { params.year_gte = currentYear - 1; params.year_lte = currentYear - 1; }
+      else if (yearSel.includes("Last 3 Years (4520)")) { params.year_gte = currentYear - 2; }
+      else if (yearSel.includes("Last 5 Years (5857)")) { params.year_gte = currentYear - 4; }
+    }
+
+    // Publication Type filter
+    const typeSel = selections["Publication Type"] || [];
+    if (!typeSel.includes("All (1732)") && typeSel.length > 0) {
+      const typeMap = {
+        "Book Chap. (40)": "book_chapter",
+        "Conf. Paper (39)": "conference",
+        "Article (327)": "journal",
+        "Review (25)": "other",
+        "Letter (376)": "other",
+      };
+      const mapped = typeSel.map(t => typeMap[t]).filter(Boolean);
+      if (mapped.length === 1) params.publication_type = mapped[0];
+    }
+
+    // Indexed In filter
+    const indexedSel = selections["Indexed In"] || [];
+    if (indexedSel.includes("Scopus")) params.in_scopus = true;
+    if (indexedSel.includes("Web of Science")) params.in_wos = true;
+    if (indexedSel.includes("PubMed")) params.in_pubmed = true;
+
+    // Open Access
+    if (selections["Open Access"]?.includes("Open Access Only")) params.is_open_access = true;
+
+    // Percentile
     if (top1) params.in_top_1_percentile = true;
     else if (top10) params.in_top_10_percentile = true;
+
+    // Impact Factor range
     if (ifMin !== "") params.impact_factor_gte = parseFloat(ifMin);
     if (ifMax !== "") params.impact_factor_lte = parseFloat(ifMax);
+
+    // Name/text search
+    if (nameQuery.trim()) params.search = nameQuery.trim();
+
     setApiParams(params);
+    setCurrentPage(1);
     setAppliedSelections({ ...selections });
     setAppliedNameQuery(nameQuery.trim());
   };
@@ -166,6 +236,7 @@ const PublicationsPage = () => {
     setTop1(false);
     setTop10(false);
     setApiParams({});
+    setCurrentPage(1);
   };
 
   const activeFilterLabel = (group) => {
@@ -189,6 +260,7 @@ const PublicationsPage = () => {
       const year = yearValue(p);
       const selected = appliedSelections.Year;
       if (!selected.length || selected.includes("All (7637)")) return true;
+      if (apiParams.year_gte || apiParams.year_lte) return true;
       if (selected.includes("Custom Range")) return true;
       const currentYear = new Date().getFullYear();
       return selected.some((item) => {
@@ -203,13 +275,19 @@ const PublicationsPage = () => {
     const matchesType = (p) => {
       const selected = appliedSelections["Publication Type"];
       if (!selected.length || selected.includes("All (1732)")) return true;
+      if (apiParams.publication_type) return true;
       return selected.some((item) => typeValue(p).includes(item.split(" (")[0].toLowerCase()));
     };
 
     const matchesIndexed = (p) => {
       const selected = appliedSelections["Indexed In"];
       if (!selected.length) return true;
-      return selected.some((item) => indexedValue(p).includes(item.toLowerCase()));
+      return selected.every((item) => {
+        if (item === "Scopus") return apiParams.in_scopus ? true : p.in_scopus === true;
+        if (item === "Web of Science") return apiParams.in_wos ? true : p.in_wos === true;
+        if (item === "PubMed") return apiParams.in_pubmed ? true : p.in_pubmed === true;
+        return true;
+      });
     };
 
     const matchesName = (p) => {
@@ -369,17 +447,33 @@ const PublicationsPage = () => {
             <div className="results-row">
               <div>
                 <h1 style={{ margin: 0, color: "#fff",
-            textShadow: "0 2px 2px CRIMSON",
-            fontFamily: FONT?.serif,
-            fontSize: "clamp(28px, 4vw, 40px)",}}>
-                  Publications
+                  textShadow: "0 2px 2px CRIMSON",
+                  fontFamily: FONT?.serif,
+                  fontSize: "clamp(28px, 4vw, 40px)",
+                  fontWeight: 400,
+                  lineHeight: 1.2,
+                }}>
+                  {sdgFromUrl
+                    ? <>Publications <span style={{ color: "rgba(255,255,255,0.45)", fontSize: "0.65em" }}>·</span> <span style={{ color: "#a78bfa", fontSize: "0.65em" }}>SDG {sdgFromUrl}: {SDG_NAMES[parseInt(sdgFromUrl)] || ""}</span></>
+                    : orderingFromUrl === "-impact_factor"
+                    ? <>Publications <span style={{ color: "rgba(255,255,255,0.45)", fontSize: "0.65em" }}>·</span> <span style={{ color: "#34d399", fontSize: "0.65em" }}>Top 20 by Impact Factor</span></>
+                    : top1FromUrl
+                    ? <>Publications <span style={{ color: "rgba(255,255,255,0.45)", fontSize: "0.65em" }}>·</span> <span style={{ color: "#fbbf24", fontSize: "0.65em" }}>Top 1 Percentile</span></>
+                    : top10FromUrl
+                    ? <>Publications <span style={{ color: "rgba(255,255,255,0.45)", fontSize: "0.65em" }}>·</span> <span style={{ color: "#fbbf24", fontSize: "0.65em" }}>Top 10 Percentile</span></>
+                    : scopusFromUrl
+                    ? <>Publications <span style={{ color: "rgba(255,255,255,0.45)", fontSize: "0.65em" }}>·</span> <span style={{ color: "#fb923c", fontSize: "0.65em" }}>Scopus Indexed</span></>
+                    : "Publications"
+                  }
                 </h1>
-                <p style={{ color: TEXT_MUTED, marginTop: 8 }}>
+                <p style={{ color: TEXT_MUTED, marginTop: 6, fontSize: 13 }}>
                   {loading
-                    ? "Loading publications..."
+                    ? "Loading..."
                     : error
                     ? error
-                    : `${filteredPubs.length} publications found`}
+                    : orderingFromUrl === "-impact_factor"
+                    ? `${totalCount.toLocaleString()} publications`
+                    : `${totalCount.toLocaleString()} publications found`}
                 </p>
               </div>
             </div>
@@ -477,7 +571,9 @@ const PublicationsPage = () => {
                 </div>
               ))
             )}
-            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={(p) => { setCurrentPage(p); window.scrollTo(0, 0); }} />
+            {orderingFromUrl !== "-impact_factor" && (
+              <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={(p) => { setCurrentPage(p); window.scrollTo(0, 0); }} />
+            )}
           </main>
         </div>
       </div>
