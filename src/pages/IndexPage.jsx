@@ -287,140 +287,132 @@ function PercentileCard({ label, value }) {
 /* ────────────────────────────────────────────────────────────────
    Charts Section
 ──────────────────────────────────────────────────────────────── */
-function ChartsRow({
-  trendData,
-  citationTotals,
-  quartileData,
-  sdgData,
-}) {
+const SDG_NAMES = {
+  1:  "No Poverty",
+  2:  "Zero Hunger",
+  3:  "Good Health & Well-Being",
+  4:  "Quality Education",
+  5:  "Gender Equality",
+  6:  "Clean Water & Sanitation",
+  7:  "Affordable & Clean Energy",
+  8:  "Decent Work & Economic Growth",
+  9:  "Industry, Innovation & Infrastructure",
+  10: "Reduced Inequalities",
+  11: "Sustainable Cities & Communities",
+  12: "Responsible Consumption",
+  13: "Climate Action",
+  14: "Life Below Water",
+  15: "Life on Land",
+  16: "Peace, Justice & Strong Institutions",
+  17: "Partnerships for the Goals",
+};
+
+function SDGBlocks({ data }) {
+  const total = data.reduce((s, d) => s + d.value, 0);
   return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "1fr minmax(240px, 0.48fr)",
-        gap: 12,
-        marginBottom: 14,
-      }}
-    >
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+      {data.map((d) => {
+        const num  = parseInt(d.label.replace("SDG ", ""), 10);
+        const name = SDG_NAMES[num] || d.label;
+        return (
+          <div
+            key={d.label}
+            style={{
+              display: "flex", alignItems: "center", gap: 8,
+              padding: "8px 10px", borderRadius: 10,
+              background: `${d.color}18`,
+              border: `1px solid ${d.color}33`,
+              minWidth: 0,
+            }}
+          >
+            {d.icon ? (
+              <img
+                src={d.icon}
+                alt={d.label}
+                style={{ width: 34, height: 34, borderRadius: 6, objectFit: "cover", flexShrink: 0 }}
+              />
+            ) : (
+              <div style={{
+                width: 34, height: 34, borderRadius: 6, flexShrink: 0,
+                background: d.color,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 13, fontWeight: 800, color: "#fff",
+              }}>
+                {num}
+              </div>
+            )}
+            <div style={{ minWidth: 0, overflow: "hidden" }}>
+              <div style={{ fontSize: 9, color: d.color, fontWeight: 700, letterSpacing: "0.05em" }}>
+                {d.label}
+              </div>
+              <div style={{
+                fontSize: 10, color: "rgba(255,255,255,0.7)", fontWeight: 500,
+                lineHeight: 1.3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+              }}>
+                {name}
+              </div>
+              <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", lineHeight: 1.1, marginTop: 2 }}>
+                {d.value.toLocaleString()}
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function ChartsRow({ trendData, citationTotals, quartileData, sdgData }) {
+  const realSDGData = (sdgData || []).map((d) => ({
+    label: d.label,
+    value: d.count ?? d.value ?? 0,
+    color: d.color,
+    icon: d.icon || null,
+  }));
+
+  return (
+    <div style={{
+      display: "grid",
+      gridTemplateColumns: "1fr minmax(240px, 0.48fr)",
+      gap: 12,
+      marginBottom: 14,
+    }}>
       {/* Trend Chart */}
       <div style={glassCard}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            marginBottom: 12,
-          }}
-        >
-          <span style={{ fontSize: 18, color: "#eaeaea", marginTop: 12, justifyContent: "center", display: "flex" }}>
-            Publication Trends
-          </span>
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
+          <span style={{ color: "#fff", fontWeight: 600 }}>Publication Trends</span>
         </div>
         <TrendChart data={trendData} />
       </div>
 
-      {/* Donut & SDG */}
+      {/* Right column: Quartile + SDG */}
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        {(() => {
-          const total = quartileData.reduce((s, d) => s + d.value, 0);
-          return (
-            <div style={glassCard} className="quartile-card">
-              {/* Header */}
-              <div style={{ marginBottom: 12 }}>
-                <div style={{ fontWeight: 600, color: "#fff", fontSize: 14, letterSpacing: "0.01em" }}>
-                  Quartile Distribution
-                </div>
-                {total > 0 && (
-                  <div style={{ color: "rgba(255,255,255,0.42)", fontSize: 11, marginTop: 2 }}>
-                    {total.toLocaleString()} publications ranked
-                  </div>
-                )}
-              </div>
 
-              {/* Donut with spin-in animation */}
-              <div style={{ display: "flex", justifyContent: "center", position: "relative", marginBottom: 14 }}
-                   className="donut-anim">
-                <DonutChart data={quartileData} size={150} innerFill="rgba(12,8,24,0.85)" />
-                {total > 0 && (
-                  <div style={{
-                    position: "absolute", top: "50%", left: "50%",
-                    transform: "translate(-50%, -50%)",
-                    textAlign: "center", pointerEvents: "none",
-                  }} className="donut-center-anim">
-                    <div style={{ fontSize: 18, fontWeight: 700, color: "#fff", lineHeight: 1.1 }}>
-                      {total.toLocaleString()}
-                    </div>
-                    <div style={{ fontSize: 9, color: "rgba(255,255,255,0.4)", marginTop: 2, letterSpacing: "0.07em", textTransform: "uppercase" }}>
-                      Total
-                    </div>
-                  </div>
-                )}
-              </div>
+        {/* Quartile Distribution */}
+        <div style={glassCard}>
+          <div style={{ textAlign: "center", fontWeight: 600, color: "#fff", marginBottom: 10 }}>
+            Quartile Distribution
+          </div>
+          <DonutChart
+            data={quartileData}
+            centerValue={quartileData.reduce((s, d) => s + d.value, 0)}
+            centerLabel="Publications"
+            height={180}
+            showLegend
+            defaultHidden={["None"]}
+          />
+        </div>
 
-              {/* Compact 2-column legend */}
-              {total > 0 && (
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "7px 8px" }}>
-                  {quartileData.map((d, i) => {
-                    const pct = Math.round((d.value / total) * 100);
-                    return (
-                      <div
-                        key={d.label}
-                        style={{
-                          gridColumn: d.label === "None" ? "1 / -1" : "auto",
-                          display: "flex", alignItems: "center", gap: 6,
-                          animationDelay: `${0.45 + i * 0.07}s`,
-                        }}
-                        className="legend-item-anim"
-                      >
-                        <div style={{ width: 8, height: 8, borderRadius: 2, background: d.color, flexShrink: 0 }} />
-                        <span style={{ fontSize: 11, color: "rgba(255,255,255,0.58)", flexShrink: 0 }}>{d.label}</span>
-                        <span style={{ fontSize: 12, fontWeight: 600, color: "#fff", marginLeft: "auto" }}>
-                          {d.value.toLocaleString()}
-                        </span>
-                        <span style={{ fontSize: 10, color: "rgba(255,255,255,0.36)", flexShrink: 0, marginLeft: 4 }}>
-                          {pct}%
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          );
-        })()}
-
-        {sdgData?.length > 0 && (
+        {/* SDG Contribution */}
+        {realSDGData.length > 0 && (
           <div style={glassCard}>
-            <div style={{ fontWeight: 600, color: "#fff", fontSize: 14, marginBottom: 14, letterSpacing: "0.01em" }}>
-              SDG Contribution Mapping
+            <div style={{ fontWeight: 600, color: "#fff", marginBottom: 10 }}>
+              SDG Contribution
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-              {/* Colorful pie/donut */}
-              <div style={{ flexShrink: 0 }} className="donut-anim">
-                <DonutChart
-                  data={sdgData.map((d) => ({ ...d, value: d.count }))}
-                  size={128}
-                  innerFill="rgba(12,8,24,0.8)"
-                  innerRatio={0.18}
-                />
-              </div>
-              {/* Legend */}
-              <div style={{ display: "flex", flexDirection: "column", gap: 9, flex: 1 }}>
-                {sdgData.map((d, i) => (
-                  <div key={d.label} style={{ display: "flex", alignItems: "center", gap: 8, animationDelay: `${0.3 + i * 0.06}s` }}
-                    className="legend-item-anim">
-                    <div style={{ width: 10, height: 10, borderRadius: "50%", background: d.color, flexShrink: 0 }} />
-                    <span style={{ fontSize: 11.5, color: "rgba(255,255,255,0.72)" }}>
-                      {d.label}
-                    </span>
-                    <span style={{ fontSize: 11, fontWeight: 600, color: "#fff", marginLeft: "auto" }}>
-                      {d.count}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <SDGBlocks data={realSDGData} />
           </div>
         )}
+
       </div>
     </div>
   );

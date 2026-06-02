@@ -225,6 +225,7 @@ export const getSDGData = async () => {
     label: `SDG ${d.number}`,
     count: d.publication_count,
     color: SDG_COLORS[d.number] || "#888",
+    icon: d.icon_url || null,
   }));
 };
 
