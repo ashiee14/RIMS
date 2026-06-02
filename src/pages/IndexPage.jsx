@@ -870,7 +870,7 @@ export default function IndexPage() {
       <div className="index-content">
         {/* Dashboard Header */}
         <div style={{ position: "relative", marginBottom: 24 }}>
-          <img src="https://www.nicepng.com/png/detail/525-5250042_tiu-logo-techno-india-university-logo.png" alt="Tiu Logo - Techno India University Logo" />
+          
             <h1 style={{
                 fontFamily: FONT.serif,
                 fontSize: "22px",
