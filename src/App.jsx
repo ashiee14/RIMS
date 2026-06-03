@@ -31,6 +31,7 @@
   import AddPublicationsPage from "./pages/AddPublicationsPage";
   import AddResearchProjectPage from "./pages/AddResearchProjectPage";
 
+  import SearchPage from "./pages/SearchPage";
   import UserProfilePage from "./pages/UserProfilePage";
   import UsersPage from "./pages/UsersPage";
   import AdminPanel from "./pages/AdminPanel";
@@ -50,6 +51,8 @@
           
           <Route path="/sdg-tagger" element={<SDGTaggerPage />} key={location.key} />
           <Route path="/journal-checker" element={<JournalCheckerPage />} key={location.key} />
+
+          <Route path="/search" element={<SearchPage />} key={location.key} />
 
           <Route path="/publications" element={<PublicationsPage />} key={location.key} />
           <Route path="/publications/:id" element={<PublicationDetailsPage />} key={location.key} />
@@ -74,6 +77,7 @@
           <Route path="/add-publication" element={<AddPublicationsPage />} key={location.key} />
           <Route path="/add-research-project" element={<AddResearchProjectPage />} key={location.key} />
 
+          <Route path="/search" element={<SearchPage />} key={location.key} />
           <Route path="/user-profile" element={<UserProfilePage />} key={location.key} />
           <Route path="/users/:id" element={<UserProfilePage />} />
           <Route path="/users" element={<UsersPage />} key={location.key} />
