@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Aurora from "../components/Aurora";
 import { COLORS, FONT } from "../styles/theme";
+import API from "../services/api";
 
 const {
   crimson: CRIMSON,
@@ -29,38 +30,21 @@ const AwardDetailsPage = () => {
   useEffect(() => {
     const loadAward = async () => {
       try {
-        const token =
-          localStorage.getItem("access_token");
+        const res = await API.get(`/awards/${id}/`);
 
-        const response = await fetch(
-          `/api/awards/${id}/`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        console.log("DETAIL DATA:", res.data);
 
-        const data = await response.json();
-
-        console.log("DETAIL DATA:", data);
-
-        setAward(data);
+        setAward(res.data);
 
         setEditForm({
-          title: data.title || "",
-          awarding_agency:
-            data.awarding_agency || "",
-          award_date:
-            data.award_date || "",
-          recipient_id: data.recipient?.id || null,
+          title: res.data.title || "",
+          awarding_agency: res.data.awarding_agency || "",
+          award_date: res.data.award_date || "",
+          recipient_id: res.data.recipient?.id || null,
         });
 
       } catch (error) {
-        console.error(
-          "DETAIL ERROR:",
-          error
-        );
+        console.error("DETAIL ERROR:", error);
       } finally {
         setLoading(false);
       }
@@ -69,93 +53,37 @@ const AwardDetailsPage = () => {
     loadAward();
   }, [id]);
 
-  const handleDeleteAward =
-    async () => {
-      try {
-        const token =
-          localStorage.getItem(
-            "access_token"
-          );
+  const handleDeleteAward = async () => {
+    try {
+      await API.delete(`/awards/${id}/`);
 
-        const response = await fetch(
-          `/api/awards/${id}/`,
-          {
-            method: "DELETE",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+      alert("Award deleted successfully!");
+      navigate("/awards");
 
-        if (response.status === 204) {
-          alert(
-            "Award deleted successfully!"
-          );
+    } catch (error) {
+      console.error("DELETE ERROR:", error);
+      alert("Delete failed");
+    }
+  };
 
-          navigate("/awards");
-        } else {
-          alert("Delete failed");
-        }
+  const handleUpdateAward = async () => {
+    try {
+      const res = await API.patch(`/awards/${id}/`, {
+        title: editForm.title,
+        awarding_agency: editForm.awarding_agency,
+        award_date: editForm.award_date,
+        recipient_id: editForm.recipient_id,
+      });
 
-      } catch (error) {
-        console.error(
-          "DELETE ERROR:",
-          error
-        );
-      }
-    };
+      setAward(res.data);
+      setEditing(false);
+      alert("Award updated successfully!");
 
-  const handleUpdateAward =
-    async () => {
-      try {
-        const token =
-          localStorage.getItem(
-            "access_token"
-          );
-
-        const response = await fetch(
-          `/api/awards/${id}/`,
-          {
-            method: "PATCH",
-            headers: {
-              "Content-Type":
-                "application/json",
-
-              Authorization:
-                `Bearer ${token}`,
-            },
-
-            body: JSON.stringify({
-              title: editForm.title,
-              awarding_agency: editForm.awarding_agency,
-              award_date: editForm.award_date,
-              recipient_id: editForm.recipient_id,
-            }),
-          }
-        );
-
-        const data =
-          await response.json();
-
-        if (response.ok) {
-          setAward(data);
-
-          setEditing(false);
-
-          alert(
-            "Award updated successfully!"
-          );
-        } else {
-          alert("Update failed");
-        }
-
-      } catch (error) {
-        console.error(
-          "UPDATE ERROR:",
-          error
-        );
-      }
-    };
+    } catch (error) {
+      console.error("UPDATE ERROR:", error);
+      alert("Update failed");
+    }
+  };
 
   return (
     <div className="aurora-page">

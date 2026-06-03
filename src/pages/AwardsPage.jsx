@@ -4,6 +4,7 @@ import { COLORS, FONT } from "../styles/theme";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import Pagination from "../components/Pagination";
+import API from "../services/api";
 
 const {
   crimson: CRIMSON,
@@ -30,17 +31,9 @@ const AwardsPage = () => {
   useEffect(() => {
         const loadAwards = async () => {
       try {
-        const token = localStorage.getItem("access_token");
-
-        console.log("TOKEN:", token);
-
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/awards/?page=${currentPage}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        const data = await response.json();
-        setAwards(Array.isArray(data) ? data : data.results || []);
-        setTotalPages(data?.total_pages || 1);
+        const res = await API.get("/awards/", { params: { page: currentPage } });
+        setAwards(Array.isArray(res.data) ? res.data : res.data.results || []);
+        setTotalPages(res.data?.total_pages || 1);
 
       } catch (error) {
         console.error("Error fetching awards:", error);
