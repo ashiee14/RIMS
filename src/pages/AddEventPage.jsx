@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Aurora from "../components/Aurora";
 import { COLORS,FONT } from "../styles/theme";
+import API from "../services/api";
 
 const {
   crimson: CRIMSON,
@@ -40,37 +41,15 @@ const AddEventPage = () => {
     e.preventDefault();
 
     try {
-      const token =
-        localStorage.getItem("access_token");
+      const res = await API.post("/events/create/", formData);
 
-      const response = await fetch(
-        "/api/events/create/",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type":
-              "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(formData),
-        }
-      );
+      console.log("CREATE EVENT:", res.data);
 
-      const data = await response.json();
-
-      console.log("CREATE EVENT:", data);
-
-      if (response.ok) {
-        alert("Event created successfully!");
-
-        navigate("/events");
-      } else {
-        alert("Failed to create event");
-      }
+      alert("Event created successfully!");
+      navigate("/events");
 
     } catch (error) {
       console.error(error);
-
       alert("Error creating event");
     }
   };

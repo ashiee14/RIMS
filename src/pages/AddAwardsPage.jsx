@@ -4,6 +4,7 @@ import Aurora from "../components/Aurora";
 import { COLORS, FONT } from "../styles/theme";
 import { jwtDecode } from "jwt-decode";
 import { useAuth } from "../contexts/AuthContext";
+import API from "../services/api";
 
 const {
   crimson: CRIMSON,
@@ -87,45 +88,31 @@ const AddAwardsPage = ({ onNav }) => {
       try {
         setUploading(true);
 
-        const token = localStorage.getItem("access_token");
-
         const formData = new FormData();
-
         formData.append("certificate", selectedFile);
 
-        const response = await fetch(
-          "/api/awards/upload-certificate/",
-          {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-            body: formData,
-          }
-        );
+        const res = await API.post("/awards/upload-certificate/", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
 
-        const data = await response.json();
+        const data = res.data;
 
         console.log("UPLOAD RESPONSE:", data);
 
-        if (response.ok) {
-          setCertificateId(data.file_upload_id);
+        setCertificateId(data.file_upload_id);
 
-          setFields((prev) => ({
-            ...prev,
-            title: data.title || "",
-            agency: data.awarding_agency || "",
-            date: data.award_date || "",
-            recipient_name: data.recipient_name || "",
-          }));
+        setFields((prev) => ({
+          ...prev,
+          title: data.title || "",
+          agency: data.awarding_agency || "",
+          date: data.award_date || "",
+          recipient_name: data.recipient_name || "",
+        }));
 
-          alert("Certificate uploaded and details extracted!");
-        } else {
-          alert("Upload failed");
-        }
+        alert("Certificate uploaded and details extracted!");
       } catch (error) {
         console.error("UPLOAD ERROR:", error);
-        alert("Something went wrong");
+        alert("Upload failed");
       } finally {
         setUploading(false);
       }
@@ -135,7 +122,6 @@ const AddAwardsPage = ({ onNav }) => {
   console.log("BUTTON CLICKED");
 
   try {
-    const token = localStorage.getItem("access_token");
     const payload = {
       title: fields.title,
       awarding_agency: fields.agency,
@@ -146,30 +132,16 @@ const AddAwardsPage = ({ onNav }) => {
 
     console.log("SENDING:", payload);
 
-    const response = await fetch("/api/awards/create/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(payload),
-    });
+    const res = await API.post("/awards/create/", payload);
 
-    const data = await response.json();
+    console.log("CREATE DATA:", res.data);
 
-    console.log("CREATE STATUS:", response.status);
-    console.log("CREATE DATA:", data);
-
-    if (response.ok) {
-      alert("Award created successfully!");
-      navigate("/awards");
-    } 
-    else {
-      alert("Failed to create award");
-    }
+    alert("Award created successfully!");
+    navigate("/awards");
 
   } catch (error) {
     console.error("CREATE ERROR:", error);
+    alert("Failed to create award");
   }
 };
 

@@ -4,6 +4,7 @@ import Aurora from "../components/Aurora";
 import { COLORS, FONT } from "../styles/theme";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import API from "../services/api";
 
 const {
   crimson: CRIMSON,
@@ -52,14 +53,9 @@ const EventsPage = () => {
     try {
       setLoading(true);
 
-      const token = localStorage.getItem("access_token");
-
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/events/?page=${currentPage}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await response.json();
-      setEvents(data.results || []);
-      setTotalPages(data.total_pages || 1);
+      const res = await API.get("/events/", { params: { page: currentPage } });
+      setEvents(res.data.results || []);
+      setTotalPages(res.data.total_pages || 1);
 
     } catch (error) {
       console.error("Error fetching events:", error);
@@ -76,35 +72,16 @@ const EventsPage = () => {
 
 const handleDeleteEvent = async (id) => {
   try {
-    const token = localStorage.getItem("access_token");
-
     console.log("DELETING EVENT:", id);
 
-    const response = await fetch(`https://rims-api.prerna.sh/api/events/${id}/`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    await API.delete(`/events/${id}/`);
 
-    console.log("DELETE STATUS:", response.status);
-
-    if (response.status === 204) {
-      alert("Event deleted!");
-
-      setEvents((prev) =>
-        prev.filter((event) => event.id !== id)
-      );
-    } else {
-      const data = await response.json();
-
-      console.log("DELETE ERROR:", data);
-
-      alert("Failed to delete event");
-    }
+    alert("Event deleted!");
+    setEvents((prev) => prev.filter((event) => event.id !== id));
 
   } catch (error) {
     console.error("DELETE EVENT ERROR:", error);
+    alert("Failed to delete event");
   }
 };
 
@@ -123,8 +100,6 @@ const handleEditClick = (event) => {
 
 const handleUpdateEvent = async () => {
   try {
-    const token = localStorage.getItem("access_token");
-
     const payload = {
       title: editForm.title,
       event_type: editForm.event_type,
@@ -136,48 +111,30 @@ const handleUpdateEvent = async () => {
 
     console.log("UPDATING EVENT:", payload);
 
-    const response = await fetch(
-      `https://rims-api.prerna.sh/api/events/${editingId}/`,
-      {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      }
+    const res = await API.patch(`/events/${editingId}/`, payload);
+
+    console.log("UPDATE DATA:", res.data);
+
+    alert("Event updated!");
+
+    setEvents((prev) =>
+      prev.map((event) => event.id === editingId ? res.data : event)
     );
 
-    const data = await response.json();
+    setEditingId(null);
 
-    console.log("UPDATE STATUS:", response.status);
-    console.log("UPDATE DATA:", data);
-
-    if (response.ok) {
-      alert("Event updated!");
-
-      setEvents((prev) =>
-        prev.map((event) =>
-          event.id === editingId ? data : event
-        )
-      );
-
-      setEditingId(null);
-
-      setEditForm({
-        title: "",
-        event_type: "conference",
-        start_date: "",
-        end_date: "",
-        location: "",
-        status: "scheduled",
-      });
-    } else {
-      alert("Failed to update event");
-    }
+    setEditForm({
+      title: "",
+      event_type: "conference",
+      start_date: "",
+      end_date: "",
+      location: "",
+      status: "scheduled",
+    });
 
   } catch (error) {
     console.error("UPDATE ERROR:", error);
+    alert("Failed to update event");
   }
 };
 
